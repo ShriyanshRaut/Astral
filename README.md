@@ -143,6 +143,7 @@ vercel
 
 ## 🎨 Future Improvements
 
+- 🌌 Add pink and biege themes
 - 🌙 Multi-theme system
 - ☁️ Cloud sync
 - 🔔 Notifications
