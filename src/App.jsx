@@ -197,7 +197,7 @@ return (
     
     <div
       ref={cursorGlowRef}
-      className="pointer-events-none fixed left-0 top-0 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-70 mix-blend-screen"
+      className="pointer-events-none fixed left-0 top-0 z-[1] h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-70 mix-blend-screen"
       style={{
         background:
           "radial-gradient(circle, rgba(139,92,246,0.34) 0%, rgba(34,211,238,0.18) 38%, rgba(255,255,255,0.02) 72%, transparent 100%)",
@@ -208,7 +208,7 @@ return (
 
     <div
       ref={cursorRingRef}
-      className="pointer-events-none fixed left-0 top-0 -z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border border-teal-300/60 mix-blend-screen"
+      className="pointer-events-none fixed left-0 top-0 z-[1] h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border border-teal-300/60 mix-blend-screen"
       style={{
         boxShadow: "0 0 45px rgba(45, 212, 191, 0.45)",
         filter: "blur(2px)",
@@ -218,7 +218,7 @@ return (
 
     <div
       ref={cursorDotRef}
-      className="pointer-events-none fixed left-0 top-0 -z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white mix-blend-screen"
+      className="pointer-events-none fixed left-0 top-0 z-[1] h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white mix-blend-screen"
       style={{
         boxShadow:
           "0 0 20px rgba(255,255,255,0.95), 0 0 40px rgba(34,211,238,0.55)",
@@ -227,7 +227,7 @@ return (
     />
 
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      
+
       <div className="absolute inset-0 opacity-[0.035] [background-image:linear-gradient(rgba(255,255,255,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:80px_80px]" />
 
       <div className="absolute left-1/2 top-0 h-[38rem] w-[38rem] -translate-x-1/2 rounded-full bg-violet-500/10 blur-[120px]" />
