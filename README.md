@@ -121,13 +121,6 @@ src/
 
 ---
 
-## 🌠 Screenshots
-
-### Dashboard
-![Dashboard Preview](./preview.png)
-
----
-
 ## 🚀 Deployment
 
 This project is optimized for deployment on:
