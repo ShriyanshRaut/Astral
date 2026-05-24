@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { gsap } from "gsap";
-import { CalendarDays, Check, ChevronLeft, ChevronRight, Circle, Plus, Search, Sparkles, Trash2 } from "lucide-react";
+import { CalendarDays, Check, ChevronLeft, ChevronRight,  Plus, Search, Sparkles, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 const STORAGE_KEY = "flashy-todo-v1";
@@ -462,40 +462,65 @@ return (
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: -10, scale: 0.98 }}
                     transition={{ duration: 0.28 }}
-                    className={`group relative overflow-hidden flex items-center gap-4 rounded-[1.8rem] border p-4 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 before:absolute before:inset-0 before:bg-gradient-to-r before:from-cyan-500/[0.03] before:via-violet-500/[0.04] before:to-fuchsia-500/[0.03] before:opacity-0 hover:before:opacity-100 ${
+                    className={`group relative overflow-hidden rounded-[1.8rem] border p-4 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 ${
                       task.completed
                         ? "border-emerald-400/20 bg-emerald-400/10"
                         : "border-white/10 bg-white/5 hover:bg-white/10"
                     }`}
                   >
-                    <button
-                      onClick={() => toggleTask(task.id)}
-                      className="shrink-0 transition-transform hover:scale-110 active:scale-95"
-                      aria-label={task.completed ? "Mark as incomplete" : "Mark as complete"}
-                    >
-                      {task.completed ? (
-                        <Check className="h-6 w-6 text-emerald-400" />
-                      ) : (
-                        <Circle className={`h-6 w-6 ${subtleText}`} />
-                      )}
-                    </button>
 
-                    <div className="min-w-0 flex-1">
-                      <p className={`text-[15px] font-medium ${task.completed ? "opacity-60 line-through" : ""}`}>
-                        {task.text}
-                      </p>
-                      <p className={`mt-1 text-xs ${subtleText}`}>
-                        Tap the circle to toggle completion.
-                      </p>
+                    <div className="relative z-20 flex items-center gap-4">
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleTask(task.id);
+                        }}
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-all duration-200 hover:scale-110 active:scale-95 ${
+                          task.completed
+                            ? "border-emerald-400 bg-emerald-400/20 text-emerald-300"
+                            : "border-white/50 text-white/70 hover:border-cyan-300 hover:text-cyan-200"
+                        }`}
+                        aria-label={
+                          task.completed
+                            ? "Mark as incomplete"
+                            : "Mark as complete"
+                        }
+                      >
+                        {task.completed && <Check size={16} />}
+                      </button>
+
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={`text-[15px] font-medium transition-all ${
+                            task.completed
+                              ? "line-through opacity-60"
+                              : "opacity-100"
+                          }`}
+                        >
+                          {task.text}
+                        </p>
+
+                        <p className={`mt-1 text-xs ${subtleText}`}>
+                          Tap the circle to toggle completion.
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteTask(task.id);
+                        }}
+                        className="relative z-20 rounded-2xl border border-white/10 bg-white/5 p-3 text-white/70 transition-all duration-200 hover:scale-105 hover:bg-red-500/20 hover:text-red-300 active:scale-95"
+                        aria-label="Delete task"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+
                     </div>
 
-                    <button
-                      onClick={() => deleteTask(task.id)}
-                      className="rounded-2xl bg-white/5 p-3 text-white/70 transition hover:scale-105 hover:bg-red-500/20 hover:text-white active:scale-95"
-                      aria-label="Delete task"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
                   </motion.div>
                 ))
               )}
