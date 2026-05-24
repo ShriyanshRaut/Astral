@@ -196,7 +196,7 @@ export default function FlashyTodoApp() {
     <div className={`min-h-screen overflow-hidden cursor-none ${themeClasses}`}>
       <div
         ref={cursorGlowRef}
-        className="pointer-events-none fixed left-0 top-0 -z-10 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full mix-blend-screen"
+        className="pointer-events-none fixed left-0 top-0 z-[120] h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-70 mix-blend-screen"
         style={{
           background:
             "radial-gradient(circle, rgba(139,92,246,0.34) 0%, rgba(34,211,238,0.18) 38%, rgba(255,255,255,0.02) 72%, transparent 100%)",
@@ -207,7 +207,7 @@ export default function FlashyTodoApp() {
 
       <div
         ref={cursorRingRef}
-        className="pointer-events-none fixed left-0 top-0 -z-10 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-400/30"
+        className="pointer-events-none fixed left-0 top-0 z-[121] h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border border-teal-300/60 mix-blend-screen"
         style={{
           boxShadow: "0 0 45px rgba(45, 212, 191, 0.45)",
           filter: "blur(2px)",
@@ -217,7 +217,7 @@ export default function FlashyTodoApp() {
 
       <div
         ref={cursorDotRef}
-        className="pointer-events-none fixed left-0 top-0 -z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
+        className="pointer-events-none fixed left-0 top-0 z-[122] h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white mix-blend-screen"
         style={{
           boxShadow: "0 0 20px rgba(255,255,255,0.95), 0 0 40px rgba(34,211,238,0.55)",
           willChange: "transform",
