@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } fr
 import { motion, AnimatePresence, useSpring } from "framer-motion";
 import {
   CalendarDays, Check, ChevronLeft, ChevronRight,
-  Plus, Search, Sparkles, Trash2, Volume2, VolumeX,
+  Plus, Search, Sparkles, Trash2, Volume2, VolumeX, SkipForward
 } from "lucide-react";
 
 const STORAGE_KEY = "flashy-todo-v3";
@@ -17,6 +17,14 @@ const initialTasks = [
   { id: uid(), text: "Ship the UI polish pass",   completed: false, date: todayString },
   { id: uid(), text: "Add smooth enter animations", completed: true,  date: todayString },
   { id: uid(), text: "Review today's priorities",   completed: false, date: todayString },
+];
+
+const AUDIO_TRACKS = [
+  { name: "Lo-Fi Study", url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" },
+  { name: "Chill Beats", url: "https://cdn.pixabay.com/audio/2026/03/24/audio_cff6ecc835.mp3" },
+  { name: "Night Rain",  url: "https://cdn.pixabay.com/audio/2025/05/31/audio_41498a0307.mp3" },
+  { name: "Coffee Shop", url: "https://cdn.pixabay.com/audio/2022/11/22/audio_febc508520.mp3" },
+  { name: "Ambient Space", url: "https://cdn.pixabay.com/audio/2026/03/05/audio_4bcdfdf1cb.mp3" }
 ];
 
 const themes = {
@@ -207,7 +215,9 @@ export default function App() {
   const [theme, setTheme]               = useState("dark");
   const [selectedDate, setSelectedDate] = useState(todayString);
   const [calendarOffset, setCalendarOffset] = useState(0);
+  
   const [audioOn, setAudioOn]           = useState(false);
+  const [trackIndex, setTrackIndex]     = useState(0);
   
   const [isChangingTheme, setIsChangingTheme] = useState(false);
   const [isInitialMount, setIsInitialMount] = useState(true);
@@ -268,14 +278,16 @@ export default function App() {
 
   useEffect(() => {
     if (!audioRef.current) return;
+    
+    audioRef.current.load();
+
     if (audioOn) { 
       audioRef.current.volume = 0.25; 
       audioRef.current.play().catch(() => {}); 
-    }
-    else {
+    } else {
       audioRef.current.pause();
     }
-  }, [audioOn]);
+  }, [audioOn, trackIndex]);
 
   const changeTheme = (next) => {
     if (next === theme) return;
@@ -339,10 +351,9 @@ export default function App() {
         }
       `}</style>
 
-      {/* Changed source to a relaxing Lo-Fi background track */}
       <audio 
         ref={audioRef} 
-        src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3" 
+        src={AUDIO_TRACKS[trackIndex].url} 
         loop 
       />
 
@@ -388,6 +399,31 @@ export default function App() {
                 <MagneticButton onClick={() => setAudioOn(a => !a)} className={`rounded-full p-2 transition-all duration-300 ${t.button}`}>
                   {audioOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
                 </MagneticButton>
+
+                <AnimatePresence>
+                  {audioOn && (
+                    <motion.div
+                      initial={{ width: 0, opacity: 0, scale: 0.8 }}
+                      animate={{ width: "auto", opacity: 1, scale: 1 }}
+                      exit={{ width: 0, opacity: 0, scale: 0.8 }}
+                      className="flex items-center gap-2 origin-left overflow-hidden"
+                    >
+                      <div className={`flex items-center justify-center rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest ${t.button} hover:bg-transparent cursor-default whitespace-nowrap`}>
+                        {AUDIO_TRACKS[trackIndex].name}
+                      </div>
+                      <MagneticButton 
+                        onClick={() => setTrackIndex(i => (i + 1) % AUDIO_TRACKS.length)} 
+                        className={`rounded-full p-2 transition-all duration-300 ${t.button}`}
+                        title="Next Track"
+                      >
+                        <SkipForward className="h-4 w-4" />
+                      </MagneticButton>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="w-[1px] h-6 bg-current opacity-20 mx-1"></div>
+
                 {["dark","pink","beige"].map(th => (
                   <MagneticButton key={th} onClick={() => changeTheme(th)}
                     className={`rounded-full px-4 py-2 text-sm transition-all duration-300 ${theme === th ? `bg-gradient-to-r ${t.accent} ${t.accentText} shadow-lg` : t.button}`}>
