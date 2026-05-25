@@ -26,6 +26,7 @@ Designed to feel less like a productivity app and more like a neon mission-contr
 - ✨ Framer Motion transitions
 - 🌠 Neon atmospheric background effects
 - 📱 Responsive modern layout
+- ✨ New themes
 
 ---
 
