@@ -8,7 +8,7 @@ Designed to feel less like a productivity app and more like a neon mission-contr
 
 ## 🚀 Live Demo
 
-🔗 [https://flashy-todo.vercel.app]
+🔗 https://flashy-todo.vercel.app
 
 ---
 
