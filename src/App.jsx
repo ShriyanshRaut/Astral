@@ -44,10 +44,10 @@ const initialTasks = [
 const themes = {
   dark: {
     background:
-      "bg-[#030712] bg-[radial-gradient(circle_at_top,_rgba(91,33,182,0.35),_transparent_30%),radial-gradient(circle_at_right,_rgba(6,182,212,0.22),_transparent_26%)] text-white",
+      "bg-[#030712] bg-[radial-gradient(circle_at_top,_rgba(91,33,182,0.18),_transparent_25%),radial-gradient(circle_at_right,_rgba(6,182,212,0.10),_transparent_20%)] text-white",
 
     card:
-      "border-white/10 bg-white/10 text-white shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl",
+      "border-white/10 bg-white/[0.06] text-white shadow-[0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-md",
 
     subtle: "text-white/70",
 
@@ -69,10 +69,10 @@ const themes = {
 
   pink: {
     background:
-      "bg-[#14040f] bg-[radial-gradient(circle_at_top,_rgba(255,0,128,0.35),_transparent_30%),radial-gradient(circle_at_right,_rgba(236,72,153,0.25),_transparent_28%)] text-pink-50",
+      "bg-[#14040f] bg-[radial-gradient(circle_at_top,_rgba(255,0,128,0.18),_transparent_25%),radial-gradient(circle_at_right,_rgba(236,72,153,0.12),_transparent_22%)] text-pink-50",
 
     card:
-      "border-pink-300/10 bg-pink-200/10 text-pink-50 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl",
+      "border-pink-300/10 bg-pink-200/[0.06] text-pink-50 shadow-[0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-md",
 
     subtle: "text-pink-100/70",
 
@@ -94,27 +94,27 @@ const themes = {
 
   beige: {
     background:
-      "bg-[#e8dfd2] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.8),_transparent_35%),radial-gradient(circle_at_right,_rgba(232,210,160,0.35),_transparent_30%)] text-[#3b3026]",
+      "bg-[#c8b89a] bg-[radial-gradient(circle_at_top_left,_rgba(210,185,145,0.9),_transparent_45%),radial-gradient(circle_at_bottom_right,_rgba(180,145,100,0.6),_transparent_40%)] text-[#2e2318]",
 
     card:
-      "border-[#d6c7b5]/60 bg-[#f5efe6]/85 text-[#3b3026] shadow-[0_20px_50px_rgba(120,90,40,0.08)] backdrop-blur-xl",
+      "border-[#b8a080]/50 bg-[#ddd0b8]/80 text-[#2e2318] shadow-[0_20px_50px_rgba(80,55,20,0.18)] backdrop-blur-md",
 
-    subtle: "text-[#6f6256]",
+    subtle: "text-[#5c4a32]",
 
     input:
-      "bg-[#fffaf3] border-[#d9ccb8] placeholder:text-[#9c8d7b]",
+      "bg-[#e8d9c0] border-[#c4a97a] placeholder:text-[#8a7055]",
 
     button:
-      "border border-[#d6c7b5] bg-[#fff8ef] text-[#3b3026] hover:bg-[#f1e2c7]",
+      "border border-[#b8a080] bg-[#d8c8a8] text-[#2e2318] hover:bg-[#cbb890]",
 
     accent:
-      "from-[#f2d28b] via-[#e6c27a] to-[#d4a94f]",
+      "from-[#c49a3c] via-[#b8852a] to-[#9e6e1a]",
 
     activeCalendar:
-      "border-[#d4a94f] bg-gradient-to-br from-[#f7e7ba] via-[#efd08a] to-[#ddb865] shadow-[0_0_20px_rgba(212,169,79,0.25)]",
+      "border-[#b8852a] bg-gradient-to-br from-[#d4aa55] via-[#c49535] to-[#a87820] shadow-[0_0_20px_rgba(180,130,40,0.35)]",
 
     progress:
-      "from-[#efd08a] to-[#d4a94f]",
+      "from-[#c49a3c] to-[#9e6e1a]",
   },
 };
 
@@ -269,18 +269,18 @@ export default function FlashyTodoApp() {
 
   return (
     <div
-      className={`min-h-screen overflow-hidden transition-all duration-500 cursor-none ${currentTheme.background}`}
+      className={`min-h-screen overflow-hidden transition-all duration-500 cursor-none flex items-center justify-center ${currentTheme.background}`}
     >
       {/* GSAP Cursor: glow blob */}
       <div
         ref={cursorGlowRef}
-        className="pointer-events-none fixed left-0 top-0 z-[9999] h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-70"
+        className="pointer-events-none fixed left-0 top-0 z-[9999] h-[16rem] w-[16rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40"
         style={{
           background: theme === "beige"
-            ? "radial-gradient(circle, rgba(180,120,40,0.28) 0%, rgba(212,169,79,0.18) 38%, rgba(180,120,40,0.04) 72%, transparent 100%)"
+            ? "radial-gradient(circle, rgba(180,120,40,0.15) 0%, rgba(212,169,79,0.10) 38%, rgba(180,120,40,0.04) 72%, transparent 100%)"
             : theme === "pink"
-            ? "radial-gradient(circle, rgba(236,72,153,0.45) 0%, rgba(217,70,239,0.25) 38%, rgba(244,114,182,0.04) 72%, transparent 100%)"
-            : "radial-gradient(circle, rgba(139,92,246,0.45) 0%, rgba(109,40,217,0.25) 38%, rgba(167,139,250,0.04) 72%, transparent 100%)",
+            ? "radial-gradient(circle, rgba(236,72,153,0.25) 0%, rgba(217,70,239,0.12) 38%, rgba(244,114,182,0.04) 72%, transparent 100%)"
+            : "radial-gradient(circle, rgba(139,92,246,0.25) 0%, rgba(109,40,217,0.12) 38%, rgba(167,139,250,0.04) 72%, transparent 100%)",
           mixBlendMode: theme === "beige" ? "multiply" : "screen",
           filter: "blur(58px)",
           willChange: "transform",
@@ -324,7 +324,7 @@ export default function FlashyTodoApp() {
         }}
       />
 
-      <div className="mx-auto flex min-h-screen max-w-[1180px] items-stretch gap-8 px-4 py-4 scale-[0.84] origin-top">
+      <div className="flex w-full max-w-[1180px] items-stretch gap-8 px-4 py-8 scale-[0.84]">
         <div className="flex-1 flex flex-col">
           <div
             className={`glass-card flex-1 rounded-[1.4rem] border p-5 ${currentTheme.card}`}
