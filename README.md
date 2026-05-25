@@ -27,6 +27,7 @@ Designed to feel less like a productivity app and more like a neon mission-contr
 - 🌠 Neon atmospheric background effects
 - 📱 Responsive modern layout
 - ✨ New themes
+- 🎵 Ambient sound effects
 
 ---
 
@@ -147,7 +148,6 @@ vercel
 - ☁️ Cloud sync
 - 🔔 Notifications
 - 📊 Analytics dashboard
-- 🎵 Ambient sound effects
 - 🤖 AI task assistant
 - 🧠 Smart productivity insights
 - 🧪 Make an app using React Native
