@@ -1,9 +1,18 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { gsap } from "gsap";
-import { CalendarDays, Check, ChevronLeft, ChevronRight,  Plus, Search, Sparkles, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  CalendarDays,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Search,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 
-const STORAGE_KEY = "flashy-todo-v1";
+const STORAGE_KEY = "flashy-todo-v3";
 
 function uid() {
   return Math.random().toString(36).slice(2, 10);
@@ -12,39 +21,125 @@ function uid() {
 const todayString = new Date().toISOString().split("T")[0];
 
 const initialTasks = [
-  { id: uid(), text: "Ship the UI polish pass", completed: false, date: todayString },
-  { id: uid(), text: "Add smooth enter and exit animations", completed: true, date: todayString },
-  { id: uid(), text: "Review today’s priorities", completed: false, date: todayString },
+  {
+    id: uid(),
+    text: "Ship the UI polish pass",
+    completed: false,
+    date: todayString,
+  },
+  {
+    id: uid(),
+    text: "Add smooth enter animations",
+    completed: true,
+    date: todayString,
+  },
+  {
+    id: uid(),
+    text: "Review today's priorities",
+    completed: false,
+    date: todayString,
+  },
 ];
 
-const initialSavedTasks = (() => {
-  try {
+const themes = {
+  dark: {
+    background:
+      "bg-[#030712] bg-[radial-gradient(circle_at_top,_rgba(91,33,182,0.35),_transparent_30%),radial-gradient(circle_at_right,_rgba(6,182,212,0.22),_transparent_26%)] text-white",
+
+    card:
+      "border-white/10 bg-white/10 text-white shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl",
+
+    subtle: "text-white/70",
+
+    input:
+      "bg-white/5 border-white/10 placeholder:text-white/35",
+
+    button:
+      "border border-white/10 bg-white/5 text-white hover:bg-white/10",
+
+    accent:
+      "from-cyan-400 via-violet-500 to-fuchsia-500",
+
+    activeCalendar:
+      "border-cyan-400/40 bg-gradient-to-br from-cyan-500/30 via-violet-500/30 to-fuchsia-500/30 shadow-[0_0_20px_rgba(34,211,238,0.25)]",
+
+    progress:
+      "from-cyan-400 to-fuchsia-500",
+  },
+
+  pink: {
+    background:
+      "bg-[#14040f] bg-[radial-gradient(circle_at_top,_rgba(255,0,128,0.35),_transparent_30%),radial-gradient(circle_at_right,_rgba(236,72,153,0.25),_transparent_28%)] text-pink-50",
+
+    card:
+      "border-pink-300/10 bg-pink-200/10 text-pink-50 shadow-[0_20px_60px_rgba(0,0,0,0.35)] backdrop-blur-xl",
+
+    subtle: "text-pink-100/70",
+
+    input:
+      "bg-pink-200/10 border-pink-200/10 placeholder:text-pink-100/40",
+
+    button:
+      "border border-pink-300/20 bg-pink-200/10 text-pink-50 hover:bg-pink-200/20",
+
+    accent:
+      "from-pink-400 via-fuchsia-500 to-rose-500",
+
+    activeCalendar:
+      "border-pink-400/40 bg-gradient-to-br from-pink-500/30 via-fuchsia-500/30 to-rose-500/30 shadow-[0_0_20px_rgba(236,72,153,0.25)]",
+
+    progress:
+      "from-pink-400 to-rose-500",
+  },
+
+  beige: {
+    background:
+      "bg-[#e8dfd2] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.8),_transparent_35%),radial-gradient(circle_at_right,_rgba(232,210,160,0.35),_transparent_30%)] text-[#3b3026]",
+
+    card:
+      "border-[#d6c7b5]/60 bg-[#f5efe6]/85 text-[#3b3026] shadow-[0_20px_50px_rgba(120,90,40,0.08)] backdrop-blur-xl",
+
+    subtle: "text-[#6f6256]",
+
+    input:
+      "bg-[#fffaf3] border-[#d9ccb8] placeholder:text-[#9c8d7b]",
+
+    button:
+      "border border-[#d6c7b5] bg-[#fff8ef] text-[#3b3026] hover:bg-[#f1e2c7]",
+
+    accent:
+      "from-[#f2d28b] via-[#e6c27a] to-[#d4a94f]",
+
+    activeCalendar:
+      "border-[#d4a94f] bg-gradient-to-br from-[#f7e7ba] via-[#efd08a] to-[#ddb865] shadow-[0_0_20px_rgba(212,169,79,0.25)]",
+
+    progress:
+      "from-[#efd08a] to-[#d4a94f]",
+  },
+};
+
+export default function FlashyTodoApp() {
+  const [tasks, setTasks] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
 
     if (!saved) return initialTasks;
 
-    const parsed = JSON.parse(saved);
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return initialTasks;
+    }
+  });
 
-    return Array.isArray(parsed.tasks)
-      ? parsed.tasks
-      : initialTasks;
-  } catch {
-    return initialTasks;
-  }
-})();
-
-
-
-export default function FlashyTodoApp() {
-  const mounted = true;
-  const [tasks, setTasks] = useState(initialSavedTasks);
   const [input, setInput] = useState("");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
+  const [theme, setTheme] = useState("dark");
   const [selectedDate, setSelectedDate] = useState(todayString);
-  const heroRef = useRef(null);
-  const listRef = useRef(null);
-  const inputRef = useRef(null);
+
+  const currentTheme = themes[theme];
+
+  // Cursor refs
   const cursorGlowRef = useRef(null);
   const cursorRingRef = useRef(null);
   const cursorDotRef = useRef(null);
@@ -52,15 +147,11 @@ export default function FlashyTodoApp() {
   const cursorCurrent = useRef({ x: 0, y: 0 });
   const ringCurrent = useRef({ x: 0, y: 0 });
 
-
   useEffect(() => {
-    if (!mounted) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ tasks }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
   }, [tasks]);
 
   useLayoutEffect(() => {
-    if (!mounted) return;
-
     const handleMouseMove = (event) => {
       cursorTarget.current.x = event.clientX;
       cursorTarget.current.y = event.clientY;
@@ -96,438 +187,501 @@ export default function FlashyTodoApp() {
 
     const ctx = gsap.context(() => {
       gsap.fromTo(
-        heroRef.current,
-        { y: 24, opacity: 0, filter: "blur(8px)" },
-        { y: 0, opacity: 1, filter: "blur(0px)", duration: 0.9, ease: "power3.out" }
-      );
-
-      gsap.fromTo(
         ".glass-card",
         { y: 20, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.7, stagger: 0.08, ease: "power3.out", delay: 0.15 }
       );
     });
+
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       cancelAnimationFrame(animationFrame);
       ctx.revert();
     };
-  }, [tasks.length]);
+  }, []);
 
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       const matchesDate = task.date === selectedDate;
-      const matchesQuery = task.text.toLowerCase().includes(query.toLowerCase());
+
+      const matchesQuery = task.text
+        .toLowerCase()
+        .includes(query.toLowerCase());
+
       const matchesFilter =
         filter === "all" ||
         (filter === "active" && !task.completed) ||
         (filter === "done" && task.completed);
-      return matchesQuery && matchesFilter && matchesDate;
+
+      return matchesDate && matchesQuery && matchesFilter;
     });
-  }, [tasks, query, filter]);
+  }, [tasks, query, filter, selectedDate]);
 
-  const remaining = tasks.filter((t) => !t.completed && t.date === selectedDate).length;
-  const todaysTasks = tasks.filter((task) => task.date === selectedDate);
-
-  const progress = todaysTasks.length
-    ? Math.round((todaysTasks.filter((t) => t.completed).length / todaysTasks.length) * 100)
+  const progress = filteredTasks.length
+    ? Math.round(
+        (filteredTasks.filter((t) => t.completed).length /
+          filteredTasks.length) *
+          100
+      )
     : 0;
-
-  const currentDate = new Date(selectedDate);
-
-  const calendarDays = Array.from({ length: 7 }, (_, index) => {
-    const day = new Date(currentDate);
-    day.setDate(currentDate.getDate() - 3 + index);
-    return day;
-  });
 
   const addTask = () => {
     const text = input.trim();
-    if (!text) return;
-    const newTask = { id: uid(), text, completed: false, date: selectedDate };
-    setTasks((prev) => [newTask, ...prev]);
-    setInput("");
-    requestAnimationFrame(() => inputRef.current?.focus());
 
-    if (listRef.current) {
-      gsap.fromTo(
-        listRef.current.querySelector(`[data-task-id="${newTask.id}"]`),
-        { y: -12, opacity: 0, scale: 0.96 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.7)" }
-      );
-    }
+    if (!text) return;
+
+    setTasks((prev) => [
+      {
+        id: uid(),
+        text,
+        completed: false,
+        date: selectedDate,
+      },
+      ...prev,
+    ]);
+
+    setInput("");
   };
 
   const toggleTask = (id) => {
     setTasks((prev) =>
-      prev.map((task) => (task.id === id ? { ...task, completed: !task.completed } : task))
+      prev.map((task) =>
+        task.id === id
+          ? { ...task, completed: !task.completed }
+          : task
+      )
     );
   };
 
   const deleteTask = (id) => {
-    const el = listRef.current?.querySelector(`[data-task-id="${id}"]`);
-    if (el) {
-      gsap.to(el, {
-        x: 24,
-        opacity: 0,
-        scale: 0.95,
-        duration: 0.25,
-        ease: "power2.in",
-        onComplete: () => setTasks((prev) => prev.filter((task) => task.id !== id)),
-      });
-      return;
-    }
     setTasks((prev) => prev.filter((task) => task.id !== id));
   };
 
-  const clearCompleted = () => setTasks((prev) => prev.filter((task) => !task.completed));
+  const clearCompleted = () => {
+    setTasks((prev) => prev.filter((task) => !task.completed));
+  };
 
-  const themeClasses =
-    "bg-[#030712] bg-[radial-gradient(circle_at_top,_rgba(91,33,182,0.35),_transparent_30%),radial-gradient(circle_at_right,_rgba(6,182,212,0.22),_transparent_26%)] text-white overflow-hidden";
+  const calendarDays = Array.from({ length: 7 }, (_, index) => {
+    const day = new Date();
+    day.setDate(day.getDate() - 3 + index);
+    return day;
+  });
 
-  const cardBase =
-    "border-white/10 bg-white/10 text-white shadow-[0_20px_80px_rgba(0,0,0,0.35)]";
-
-  const subtleText = "text-white/70";
-  const inputBg = "bg-white/8 border-white/10 placeholder:text-white/35";
-  const theme = "dark";
-
-return (
-  <div className={`min-h-screen overflow-hidden cursor-none ${themeClasses}`}>
-    
+  return (
     <div
-      ref={cursorGlowRef}
-      className="pointer-events-none fixed left-0 top-0 z-[1] h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-70 mix-blend-screen"
-      style={{
-        background:
-          "radial-gradient(circle, rgba(139,92,246,0.34) 0%, rgba(34,211,238,0.18) 38%, rgba(255,255,255,0.02) 72%, transparent 100%)",
-        filter: "blur(58px)",
-        willChange: "transform",
-      }}
-    />
+      className={`min-h-screen overflow-hidden transition-all duration-500 cursor-none ${currentTheme.background}`}
+    >
+      {/* GSAP Cursor: glow blob */}
+      <div
+        ref={cursorGlowRef}
+        className="pointer-events-none fixed left-0 top-0 z-[9999] h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-70"
+        style={{
+          background: theme === "beige"
+            ? "radial-gradient(circle, rgba(180,120,40,0.28) 0%, rgba(212,169,79,0.18) 38%, rgba(180,120,40,0.04) 72%, transparent 100%)"
+            : theme === "pink"
+            ? "radial-gradient(circle, rgba(236,72,153,0.45) 0%, rgba(217,70,239,0.25) 38%, rgba(244,114,182,0.04) 72%, transparent 100%)"
+            : "radial-gradient(circle, rgba(139,92,246,0.45) 0%, rgba(109,40,217,0.25) 38%, rgba(167,139,250,0.04) 72%, transparent 100%)",
+          mixBlendMode: theme === "beige" ? "multiply" : "screen",
+          filter: "blur(58px)",
+          willChange: "transform",
+        }}
+      />
 
-    <div
-      ref={cursorRingRef}
-      className="pointer-events-none fixed left-0 top-0 z-[1] h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full border border-teal-300/60 mix-blend-screen"
-      style={{
-        boxShadow: "0 0 45px rgba(45, 212, 191, 0.45)",
-        filter: "blur(2px)",
-        willChange: "transform",
-      }}
-    />
+      {/* GSAP Cursor: trailing ring */}
+      <div
+        ref={cursorRingRef}
+        className="pointer-events-none fixed left-0 top-0 z-[9999] h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{
+          border: theme === "beige"
+            ? "1.5px solid rgba(160,100,30,0.55)"
+            : theme === "pink"
+            ? "1px solid rgba(244,114,182,0.75)"
+            : "1px solid rgba(167,139,250,0.7)",
+          boxShadow: theme === "beige"
+            ? "0 0 18px rgba(180,120,30,0.35), inset 0 0 8px rgba(212,169,79,0.15)"
+            : theme === "pink"
+            ? "0 0 45px rgba(236,72,153,0.55), inset 0 0 12px rgba(217,70,239,0.2)"
+            : "0 0 45px rgba(139,92,246,0.55), inset 0 0 12px rgba(109,40,217,0.2)",
+          mixBlendMode: theme === "beige" ? "multiply" : "screen",
+          filter: "blur(1px)",
+          willChange: "transform",
+        }}
+      />
 
-    <div
-      ref={cursorDotRef}
-      className="pointer-events-none fixed left-0 top-0 z-[1] h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white mix-blend-screen"
-      style={{
-        boxShadow:
-          "0 0 20px rgba(255,255,255,0.95), 0 0 40px rgba(34,211,238,0.55)",
-        willChange: "transform",
-      }}
-    />
+      {/* GSAP Cursor: sharp dot */}
+      <div
+        ref={cursorDotRef}
+        className="pointer-events-none fixed left-0 top-0 z-[9999] h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full"
+        style={{
+          background: "white",
+          mixBlendMode: theme === "beige" ? "multiply" : "screen",
+          boxShadow: theme === "beige"
+            ? "0 0 10px rgba(160,100,20,0.6), 0 0 22px rgba(212,169,79,0.4)"
+            : theme === "pink"
+            ? "0 0 20px rgba(255,255,255,0.95), 0 0 40px rgba(236,72,153,0.7), 0 0 70px rgba(217,70,239,0.4)"
+            : "0 0 20px rgba(255,255,255,0.95), 0 0 40px rgba(139,92,246,0.7), 0 0 70px rgba(109,40,217,0.4)",
+          willChange: "transform",
+        }}
+      />
 
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="mx-auto flex min-h-screen max-w-[1180px] items-stretch gap-8 px-4 py-4 scale-[0.84] origin-top">
+        <div className="flex-1 flex flex-col">
+          <div
+            className={`glass-card flex-1 rounded-[1.4rem] border p-5 ${currentTheme.card}`}
+          >
+            <div className="mb-6 flex items-start justify-between">
+              <div>
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-xs">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Task orbit controller
+                </div>
 
-      <div className="absolute inset-0 opacity-[0.035] [background-image:linear-gradient(rgba(255,255,255,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.15)_1px,transparent_1px)] [background-size:80px_80px]" />
+                <h1 className="text-4xl font-black tracking-tight">
+                  Flashy Todo App ✨
+                </h1>
 
-      <div className="absolute left-1/2 top-0 h-[38rem] w-[38rem] -translate-x-1/2 rounded-full bg-violet-500/10 blur-[120px]" />
+                <p
+                  className={`mt-3 max-w-lg text-base ${currentTheme.subtle}`}
+                >
+                  Futuristic task management with cinematic gradients and
+                  smooth productivity flow.
+                </p>
+              </div>
 
-      <div className="absolute -top-20 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-fuchsia-500/20 blur-3xl" />
+              <div className="flex gap-2">
+                {["dark", "pink", "beige"].map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setTheme(t)}
+                    className={`rounded-full px-4 py-2 text-sm transition-all duration-300 ${
+                      theme === t
+                        ? `bg-gradient-to-r ${currentTheme.accent} ${
+                            theme === "beige"
+                              ? "text-[#3b3026]"
+                              : "text-white"
+                          } shadow-lg`
+                        : currentTheme.button
+                    }`}
+                  >
+                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-      <div className="absolute right-[-4rem] top-32 h-80 w-80 rounded-full bg-cyan-400/20 blur-3xl" />
-
-      <div className="absolute bottom-[-5rem] left-10 h-72 w-72 rounded-full bg-violet-400/20 blur-3xl" />
-
-    </div>
-
-      <main className="relative mx-auto flex min-h-screen w-full max-w-7xl items-center px-4 py-10 sm:px-6 lg:px-8">
-        <div className="grid w-full gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
-          <section ref={heroRef} className="space-y-6">
-            <div className={`glass-card ${cardBase} relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.08] p-6 backdrop-blur-2xl before:absolute before:inset-0 before:bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.06),transparent)] before:opacity-40 sm:p-8`}>
-              <div className="flex items-center justify-between gap-4">
+            <div
+              className={`glass-card rounded-[1.4rem] border p-4 ${currentTheme.card}`}
+            >
+              <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-medium tracking-wide backdrop-blur-md">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Task orbit controller
+                  <div className="flex items-center gap-2 text-xl font-semibold">
+                    <CalendarDays className="h-5 w-5" />
+                    Orbit calendar
                   </div>
-                  <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                    Flashy Todo App ✨
-                  </h1>
-                  <p className={`mt-2 max-w-xl text-sm leading-6 ${subtleText}`}>
-                    A neon mission-control dashboard with cinematic glow trails, holographic cards, and orbit-based daily task tracking.
+
+                  <p className={`mt-1 text-sm ${currentTheme.subtle}`}>
+                    Daily mission queues.
                   </p>
                 </div>
-                <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-sm font-medium text-cyan-200 shadow-lg shadow-cyan-500/10">
-                  Cyber mode engaged
-                </div>
-              </div>
 
-              <div className="mt-8 rounded-[2rem] border border-white/10 bg-black/20 p-5 shadow-[0_0_60px_rgba(59,130,246,0.12)] backdrop-blur-xl">
-                <div className="mb-4 flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 text-sm font-medium">
-                      <CalendarDays className="h-4 w-4" />
-                      Orbit calendar
-                    </div>
-                    <p className={`mt-1 text-xs ${subtleText}`}>
-                      Every day gets its own mission queue.
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        const prev = new Date(selectedDate);
-                        prev.setDate(prev.getDate() - 1);
-                        setSelectedDate(prev.toISOString().split("T")[0]);
-                      }}
-                      className="rounded-2xl border border-white/10 bg-white/5 p-2 transition hover:scale-105"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        const next = new Date(selectedDate);
-                        next.setDate(next.getDate() + 1);
-                        setSelectedDate(next.toISOString().split("T")[0]);
-                      }}
-                      className="rounded-2xl border border-white/10 bg-white/5 p-2 transition hover:scale-105"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-7 gap-2">
-                  {calendarDays.map((day) => {
-                    const iso = day.toISOString().split("T")[0];
-                    const isActive = iso === selectedDate;
-                    const dayTasks = tasks.filter((task) => task.date === iso).length;
-
-                    return (
-                      <button
-                        key={iso}
-                        onClick={() => setSelectedDate(iso)}
-                        className={`rounded-2xl border p-3 text-center transition-all hover:-translate-y-1 ${
-                          isActive
-                            ? "border-cyan-400/40 bg-gradient-to-br from-cyan-500/30 via-violet-500/30 to-fuchsia-500/30 shadow-lg shadow-cyan-500/20"
-                            : theme === "dark"
-                            ? "border-white/10 bg-white/5 hover:bg-white/10"
-                            : "border-slate-200 bg-white/60 hover:bg-white"
-                        }`}
-                      >
-                        <p className={`text-[10px] uppercase tracking-[0.2em] ${subtleText}`}>
-                          {day.toLocaleDateString("en-US", { weekday: "short" })}
-                        </p>
-                        <p className="mt-1 text-xl font-bold">
-                          {day.getDate()}
-                        </p>
-                        <div className="mt-2 flex items-center justify-center gap-1">
-                          <div className="h-2 w-2 rounded-full bg-cyan-400" />
-                          <span className="text-xs font-medium">{dayTasks}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                {[
-                  { label: "Total tasks", value: tasks.length },
-                  { label: "Left to do", value: remaining },
-                  { label: "Progress", value: `${progress}%` },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    className={`glass-card rounded-[1.8rem] border border-white/10 bg-white/[0.07] p-5 shadow-[0_10px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl`}
+                <div className="flex gap-2">
+                  <button
+                    className={`rounded-xl p-3 ${currentTheme.button}`}
                   >
-                    <p className={`text-xs uppercase tracking-[0.22em] ${subtleText}`}>{item.label}</p>
-                    <p className="mt-3 text-3xl font-bold">{item.value}</p>
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+
+                  <button
+                    className={`rounded-xl p-3 ${currentTheme.button}`}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-7 gap-3">
+                {calendarDays.map((day) => {
+                  const iso = day.toISOString().split("T")[0];
+
+                  const isActive = iso === selectedDate;
+
+                  const dayTasks = tasks.filter(
+                    (task) => task.date === iso
+                  ).length;
+
+                  return (
+                    <button
+                      key={iso}
+                      onClick={() => setSelectedDate(iso)}
+                      className={`rounded-[1rem] border p-3 transition-all duration-300 ${
+                        isActive
+                          ? currentTheme.activeCalendar
+                          : currentTheme.button
+                      }`}
+                    >
+                      <div className="text-[10px] uppercase tracking-[0.2em] opacity-60">
+                        {day.toLocaleDateString("en-US", {
+                          weekday: "short",
+                        })}
+                      </div>
+
+                      <div className="mt-2 text-3xl font-black">
+                        {day.getDate()}
+                      </div>
+
+                      <div className="mt-2 flex items-center justify-center gap-1 text-xs">
+                        <div
+                          className={`h-2 w-2 rounded-full bg-gradient-to-r ${currentTheme.progress}`}
+                        />
+                        {dayTasks}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="mt-5 grid grid-cols-3 gap-4">
+              {[
+                {
+                  label: "TOTAL TASKS",
+                  value: filteredTasks.length,
+                },
+                {
+                  label: "LEFT TO DO",
+                  value: filteredTasks.filter((t) => !t.completed)
+                    .length,
+                },
+                {
+                  label: "PROGRESS",
+                  value: `${progress}%`,
+                },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className={`glass-card rounded-[1.2rem] border p-5 ${currentTheme.card}`}
+                >
+                  <div
+                    className={`text-[11px] tracking-[0.25em] ${currentTheme.subtle}`}
+                  >
+                    {stat.label}
                   </div>
+
+                  <div className="mt-3 text-4xl font-black">
+                    {stat.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div
+              className={`mt-5 rounded-[1.2rem] border p-4 ${currentTheme.card}`}
+            >
+              <div className="mb-3 flex items-center justify-between">
+                <span className={`text-sm ${currentTheme.subtle}`}>
+                  Completion ring
+                </span>
+
+                <span className="text-sm font-bold">
+                  {progress}%
+                </span>
+              </div>
+
+              <div className="h-3 overflow-hidden rounded-full bg-black/10">
+                <div
+                  className={`h-full rounded-full bg-gradient-to-r ${currentTheme.progress}`}
+                  style={{
+                    width: `${progress}%`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div
+            className={`glass-card mt-5 rounded-[1.4rem] border p-5 ${currentTheme.card}`}
+          >
+            <div className="flex gap-3">
+              <div className="relative flex-1">
+                <Plus className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 opacity-60" />
+
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && addTask()
+                  }
+                  placeholder="Add a new task"
+                  className={`w-full rounded-xl border py-3 pl-11 pr-4 text-sm outline-none ${currentTheme.input}`}
+                />
+              </div>
+
+              <button
+                onClick={addTask}
+                className={`rounded-xl bg-gradient-to-r px-6 py-3 text-sm font-bold transition-all duration-300 ${currentTheme.accent} ${
+                  theme === "beige"
+                    ? "text-[#3b3026]"
+                    : "text-white"
+                }`}
+              >
+                Add task
+              </button>
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 opacity-60" />
+
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search tasks"
+                  className={`w-full rounded-xl border py-3 pl-11 pr-4 text-sm outline-none ${currentTheme.input}`}
+                />
+              </div>
+
+              <div className="flex gap-2">
+                {["all", "active", "done"].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setFilter(type)}
+                    className={`rounded-xl px-4 py-3 text-sm transition-all duration-300 ${
+                      filter === type
+                        ? `bg-gradient-to-r ${currentTheme.accent} ${
+                            theme === "beige"
+                              ? "text-[#3b3026]"
+                              : "text-white"
+                          }`
+                        : currentTheme.button
+                    }`}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </button>
                 ))}
               </div>
 
-              <div className="mt-6 rounded-3xl border border-white/10 bg-black/10 p-4 backdrop-blur-md">
-                <div className="mb-3 flex items-center justify-between text-sm">
-                  <span className={subtleText}>Completion ring</span>
-                  <span className="font-medium">{progress}%</span>
-                </div>
-                <div className="h-3 overflow-hidden rounded-full bg-white/10">
-                  <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-violet-500 to-fuchsia-500"
-                    initial={false}
-                    animate={{ width: `${progress}%` }}
-                    transition={{ type: "spring", stiffness: 160, damping: 18 }}
-                  />
-                </div>
-              </div>
+              <button
+                onClick={clearCompleted}
+                className={`rounded-xl px-4 py-3 text-sm ${currentTheme.button}`}
+              >
+                Clear done
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          className={`glass-card w-[420px] self-stretch rounded-[1.4rem] border p-6 ${currentTheme.card}`}
+        >
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <h2 className="text-3xl font-black">
+                Mission Control
+              </h2>
+
+              <p className={`mt-1 text-sm ${currentTheme.subtle}`}>
+                {new Date(selectedDate).toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
             </div>
 
-            <div className={`glass-card ${cardBase} rounded-[2rem] border p-4 backdrop-blur-xl sm:p-5`}>
-              <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${inputBg}`}>
-                  <Plus className="h-4 w-4 opacity-70" />
-                  <input
-                    ref={inputRef}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && addTask()}
-                    placeholder="Add a new task"
-                    className="w-full bg-transparent text-sm outline-none"
-                  />
-                </div>
-                <button
-                  onClick={addTask}
-                  className="rounded-2xl bg-gradient-to-r from-cyan-400 via-violet-500 to-fuchsia-500 px-6 py-3 text-sm font-semibold text-white shadow-[0_0_40px_rgba(168,85,247,0.55)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_65px_rgba(34,211,238,0.55)] active:translate-y-0"
-                >
-                  Add task
-                </button>
-              </div>
-
-              <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto_auto]">
-                <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 ${inputBg}`}>
-                  <Search className="h-4 w-4 opacity-70" />
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search tasks"
-                    className="w-full bg-transparent text-sm outline-none"
-                  />
-                </div>
-                <div className="inline-flex rounded-2xl border p-1">
-                  {[
-                    ["all", "All"],
-                    ["active", "Active"],
-                    ["done", "Done"],
-                  ].map(([key, label]) => (
-                    <button
-                      key={key}
-                      onClick={() => setFilter(key)}
-                      className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-                        filter === key
-                          ? "bg-gradient-to-r from-cyan-500 via-violet-500 to-fuchsia-500 text-white"
-                          : "text-white/70 hover:text-white"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  onClick={clearCompleted}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium transition hover:-translate-y-0.5 active:translate-y-0"
-                >
-                  Clear done
-                </button>
-              </div>
+            <div
+              className={`rounded-full border px-4 py-2 text-sm ${currentTheme.button}`}
+            >
+              {
+                filteredTasks.filter((t) => t.completed)
+                  .length
+              }{" "}
+              done
             </div>
-          </section>
+          </div>
 
-          <section className={`glass-card ${cardBase} rounded-[2rem] border p-4 backdrop-blur-xl sm:p-6`}>
-            <div className="mb-4 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold">Mission Control</h2>
-                <p className={`mt-1 text-xs ${subtleText}`}>
-                  {new Date(selectedDate).toLocaleDateString("en-US", {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                  })}
+          <div className="space-y-3">
+            {filteredTasks.length === 0 ? (
+              <div
+                className={`rounded-[1.4rem] border border-dashed p-10 text-center ${currentTheme.card}`}
+              >
+                <div
+                  className={`mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[1.2rem] bg-gradient-to-r ${currentTheme.accent}`}
+                >
+                  <Sparkles className="h-7 w-7 text-white" />
+                </div>
+
+                <h3 className="text-2xl font-black">
+                  Mission queue empty
+                </h3>
+
+                <p className={`mt-2 text-sm ${currentTheme.subtle}`}>
+                  Add a task and begin your orbit.
                 </p>
-                <p className={`mt-1 text-sm ${subtleText}`}>{filteredTasks.length} item(s) visible</p>
               </div>
-              <div className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-medium">
-                {tasks.filter((t) => t.completed && t.date === selectedDate).length} done
-              </div>
-            </div>
-
-            <div ref={listRef} className="space-y-3">
-              {filteredTasks.length === 0 ? (
-                <div className="rounded-3xl border border-dashed border-white/10 bg-white/5 p-10 text-center">
-                  <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-500 via-violet-500 to-fuchsia-500 text-white shadow-lg shadow-violet-500/30">
-                    <Sparkles className="h-6 w-6" />
-                  </div>
-                  <p className="text-lg font-semibold">Mission queue is empty</p>
-                  <p className={`mt-1 text-sm ${subtleText}`}>Add a task or relax for a second. Your list is on standby.</p>
-                </div>
-              ) : (
-                filteredTasks.map((task) => (
-                  <motion.div
-                    key={task.id}
-                    data-task-id={task.id}
-                    layout
-                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -10, scale: 0.98 }}
-                    transition={{ duration: 0.28 }}
-                    className={`group relative overflow-hidden rounded-[1.8rem] border p-4 backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 ${
+            ) : (
+              filteredTasks.map((task) => (
+                <motion.div
+                  key={task.id}
+                  layout
+                  initial={{
+                    opacity: 0,
+                    y: 10,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                  }}
+                  exit={{
+                    opacity: 0,
+                    y: -10,
+                  }}
+                  className={`flex items-center gap-3 rounded-[1.1rem] border p-4 transition-all duration-300 ${
+                    task.completed
+                      ? "border-emerald-400/20 bg-emerald-400/10"
+                      : currentTheme.card
+                  }`}
+                >
+                  <button
+                    onClick={() => toggleTask(task.id)}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-300 ${
                       task.completed
-                        ? "border-emerald-400/20 bg-emerald-400/10"
-                        : "border-white/10 bg-white/5 hover:bg-white/10"
+                        ? "border-emerald-400 bg-emerald-400 text-white"
+                        : currentTheme.button
                     }`}
                   >
+                    {task.completed && (
+                      <Check className="h-4 w-4" />
+                    )}
+                  </button>
 
-                    <div className="relative z-20 flex items-center gap-4">
+                  <div className="flex-1 flex flex-col">
+                    <h3
+                      className={`text-lg font-semibold ${
+                        task.completed
+                          ? "line-through opacity-50"
+                          : ""
+                      }`}
+                    >
+                      {task.text}
+                    </h3>
 
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleTask(task.id);
-                        }}
-                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-all duration-200 hover:scale-110 active:scale-95 ${
-                          task.completed
-                            ? "border-emerald-400 bg-emerald-400/20 text-emerald-300"
-                            : "border-white/50 text-white/70 hover:border-cyan-300 hover:text-cyan-200"
-                        }`}
-                        aria-label={
-                          task.completed
-                            ? "Mark as incomplete"
-                            : "Mark as complete"
-                        }
-                      >
-                        {task.completed && <Check size={16} />}
-                      </button>
+                    <p className={`mt-1 text-xs ${currentTheme.subtle}`}>
+                      Tap to toggle completion.
+                    </p>
+                  </div>
 
-                      <div className="min-w-0 flex-1">
-                        <p
-                          className={`text-[15px] font-medium transition-all ${
-                            task.completed
-                              ? "line-through opacity-60"
-                              : "opacity-100"
-                          }`}
-                        >
-                          {task.text}
-                        </p>
-
-                        <p className={`mt-1 text-xs ${subtleText}`}>
-                          Tap the circle to toggle completion.
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteTask(task.id);
-                        }}
-                        className="relative z-20 rounded-2xl border border-white/10 bg-white/5 p-3 text-white/70 transition-all duration-200 hover:scale-105 hover:bg-red-500/20 hover:text-red-300 active:scale-95"
-                        aria-label="Delete task"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-
-                    </div>
-
-                  </motion.div>
-                ))
-              )}
-            </div>
-          </section>
+                  <button
+                    onClick={() => deleteTask(task.id)}
+                    className={`rounded-xl p-3 transition-all duration-300 ${currentTheme.button}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </motion.div>
+              ))
+            )}
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
