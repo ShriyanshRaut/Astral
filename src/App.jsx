@@ -94,18 +94,18 @@ const themes = {
 
   beige: {
     background:
-      "bg-[#c8b89a] bg-[radial-gradient(circle_at_top_left,_rgba(210,185,145,0.9),_transparent_45%),radial-gradient(circle_at_bottom_right,_rgba(180,145,100,0.6),_transparent_40%)] text-[#2e2318]",
+      "bg-[#1a1208] bg-[radial-gradient(circle_at_top,_rgba(180,130,60,0.22),_transparent_35%),radial-gradient(circle_at_bottom_right,_rgba(140,95,30,0.15),_transparent_30%)] text-[#f0e6d0]",
 
     card:
-      "border-[#b8a080]/50 bg-[#ddd0b8]/80 text-[#2e2318] shadow-[0_20px_50px_rgba(80,55,20,0.18)] backdrop-blur-md",
+      "border-[#c8a96a]/20 bg-[#2e2010]/70 text-[#f0e6d0] shadow-[0_20px_50px_rgba(0,0,0,0.45)] backdrop-blur-md",
 
-    subtle: "text-[#5c4a32]",
+    subtle: "text-[#c8a96a]",
 
     input:
-      "bg-[#e8d9c0] border-[#c4a97a] placeholder:text-[#8a7055]",
+      "bg-[#241a0a] border-[#8a6a30]/40 placeholder:text-[#c8a96a]/50",
 
     button:
-      "border border-[#b8a080] bg-[#d8c8a8] text-[#2e2318] hover:bg-[#cbb890]",
+      "border border-[#8a6a30]/30 bg-[#2e2010]/60 text-[#f0e6d0] hover:bg-[#3d2c10]/80",
 
     accent:
       "from-[#c49a3c] via-[#b8852a] to-[#9e6e1a]",
@@ -277,11 +277,11 @@ export default function FlashyTodoApp() {
         className="pointer-events-none fixed left-0 top-0 z-[9999] h-[16rem] w-[16rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40"
         style={{
           background: theme === "beige"
-            ? "radial-gradient(circle, rgba(180,120,40,0.15) 0%, rgba(212,169,79,0.10) 38%, rgba(180,120,40,0.04) 72%, transparent 100%)"
+            ? "radial-gradient(circle, rgba(200,150,50,0.35) 0%, rgba(180,130,40,0.18) 38%, rgba(160,110,20,0.04) 72%, transparent 100%)"
             : theme === "pink"
             ? "radial-gradient(circle, rgba(236,72,153,0.25) 0%, rgba(217,70,239,0.12) 38%, rgba(244,114,182,0.04) 72%, transparent 100%)"
             : "radial-gradient(circle, rgba(139,92,246,0.25) 0%, rgba(109,40,217,0.12) 38%, rgba(167,139,250,0.04) 72%, transparent 100%)",
-          mixBlendMode: theme === "beige" ? "multiply" : "screen",
+          mixBlendMode: "screen",
           filter: "blur(58px)",
           willChange: "transform",
         }}
@@ -302,7 +302,7 @@ export default function FlashyTodoApp() {
             : theme === "pink"
             ? "0 0 45px rgba(236,72,153,0.55), inset 0 0 12px rgba(217,70,239,0.2)"
             : "0 0 45px rgba(139,92,246,0.55), inset 0 0 12px rgba(109,40,217,0.2)",
-          mixBlendMode: theme === "beige" ? "multiply" : "screen",
+          mixBlendMode: "screen",
           filter: "blur(1px)",
           willChange: "transform",
         }}
@@ -314,7 +314,7 @@ export default function FlashyTodoApp() {
         className="pointer-events-none fixed left-0 top-0 z-[9999] h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
           background: "white",
-          mixBlendMode: theme === "beige" ? "multiply" : "screen",
+          mixBlendMode: "screen",
           boxShadow: theme === "beige"
             ? "0 0 10px rgba(160,100,20,0.6), 0 0 22px rgba(212,169,79,0.4)"
             : theme === "pink"
