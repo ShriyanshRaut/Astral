@@ -1,9 +1,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence, useSpring } from "framer-motion";
 import {
   CalendarDays, Check, ChevronLeft, ChevronRight,
   Plus, Search, Sparkles, Trash2, Volume2, VolumeX, SkipForward,
-  Flame, Target, AlertCircle, Tag, Clock, Settings, X, User, Sliders, ShieldCheck
+  Flame, Target, AlertCircle, Tag, Clock, Settings, X, User, Sliders, ShieldCheck,
+  ChevronDown
 } from "lucide-react";
 
 const STORAGE_KEY = "flashy-todo-v4";
@@ -30,11 +32,11 @@ const defaultSettings = {
 };
 
 const AUDIO_TRACKS = [
-  { name: "Lo-Fi Study", url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" },
-  { name: "Chill Beats", url: "https://cdn.pixabay.com/audio/2026/03/24/audio_cff6ecc835.mp3" },
-  { name: "Night Rain",  url: "https://cdn.pixabay.com/audio/2025/05/31/audio_41498a0307.mp3" },
-  { name: "Coffee Shop", url: "https://cdn.pixabay.com/audio/2022/11/22/audio_febc508520.mp3" },
-  { name: "Ambient Space", url: "https://cdn.pixabay.com/audio/2026/03/05/audio_4bcdfdf1cb.mp3" }
+  { name: "Lo-Fi Study",    url: "https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3" },
+  { name: "Chill Beats",    url: "https://cdn.pixabay.com/audio/2026/03/24/audio_cff6ecc835.mp3" },
+  { name: "Night Rain",     url: "https://cdn.pixabay.com/audio/2025/05/31/audio_41498a0307.mp3" },
+  { name: "Coffee Shop",    url: "https://cdn.pixabay.com/audio/2022/11/22/audio_febc508520.mp3" },
+  { name: "Ambient Space",  url: "https://cdn.pixabay.com/audio/2026/03/05/audio_4bcdfdf1cb.mp3" }
 ];
 
 const EMPTY_MESSAGES = [
@@ -42,6 +44,13 @@ const EMPTY_MESSAGES = [
   "The grid is quiet. Add a mission.",
   "No active protocols.",
   "Cyber-deck clear. Ready for input."
+];
+
+const PRIORITY_OPTIONS = [
+  { value: "low",      label: "Low Priority",    dot: "bg-gray-400"   },
+  { value: "medium",   label: "Medium Priority",  dot: "bg-blue-400"   },
+  { value: "high",     label: "High Priority",    dot: "bg-orange-400" },
+  { value: "critical", label: "Critical",         dot: "bg-red-400"    },
 ];
 
 const themes = {
@@ -99,25 +108,22 @@ const PARTICLES = Array.from({ length: 38 }, () => ({
   left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, size: `${Math.random() * 3 + 1}px`,
   duration: `${Math.random() * 15 + 10}s`, delay: `-${Math.random() * 10}s`,
   opacity: Math.random() * 0.6 + 0.15, glow: Math.random() * 6 + 3,
-  tx1: `${Math.random() > 0.5 ? "" : "-"}${Math.floor(Math.random() * 40 + 10)}px`,
-  ty1: `-${Math.floor(Math.random() * 60 + 20)}px`,
-  tx2: `${Math.random() > 0.5 ? "" : "-"}${Math.floor(Math.random() * 30 + 5)}px`,
-  ty2: `-${Math.floor(Math.random() * 80 + 30)}px`,
-  ty3: `-${Math.floor(Math.random() * 100 + 40)}px`,
 }));
 
+// ─── Particle ─────────────────────────────────────────────────────────────────
 function Particle({ data, color }) {
   return (
     <div className="absolute rounded-full pointer-events-none"
-      style={{ left: data.left, top: data.top, width: data.size, height: data.size, opacity: data.opacity, background: color, boxShadow: `0 0 ${data.glow}px ${color}`, animationName: "floatParticle", animationDuration: data.duration, animationDelay: data.delay, animationTimingFunction: "ease-in-out", animationIterationCount: "infinite", animationDirection: "alternate", }}
+      style={{ left: data.left, top: data.top, width: data.size, height: data.size, opacity: data.opacity, background: color, boxShadow: `0 0 ${data.glow}px ${color}`, animationName: "floatParticle", animationDuration: data.duration, animationDelay: data.delay, animationTimingFunction: "ease-in-out", animationIterationCount: "infinite", animationDirection: "alternate" }}
     />
   );
 }
 
+// ─── Progress Ring ────────────────────────────────────────────────────────────
 function ProgressRing({ progress, theme }) {
   const r = 52, circ = 2 * Math.PI * r;
   const offset = circ - (progress / 100) * circ;
-  const t = themes[theme];
+  const th = themes[theme];
   const gradId = `prog-${theme}`;
   return (
     <div className="relative flex items-center justify-center" style={{ width: 130, height: 130 }}>
@@ -126,19 +132,20 @@ function ProgressRing({ progress, theme }) {
         <motion.circle cx="65" cy="65" r={r} fill="none" stroke={`url(#${gradId})`} strokeWidth="8" strokeLinecap="round" strokeDasharray={circ} animate={{ strokeDashoffset: offset }} transition={{ type: "spring", stiffness: 60, damping: 14 }} />
         <defs>
           <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor={t.progressStart} />
-            <stop offset="100%" stopColor={t.progressEnd} />
+            <stop offset="0%" stopColor={th.progressStart} />
+            <stop offset="100%" stopColor={th.progressEnd} />
           </linearGradient>
         </defs>
       </svg>
       <div className="absolute flex flex-col items-center">
         <span className="text-2xl font-black">{progress}%</span>
-        <span className={`text-[10px] tracking-widest uppercase ${t.subtle}`}>done</span>
+        <span className={`text-[10px] tracking-widest uppercase ${th.subtle}`}>done</span>
       </div>
     </div>
   );
 }
 
+// ─── Magnetic Button ──────────────────────────────────────────────────────────
 function MagneticButton({ children, className, onClick, strength = 0.35, title }) {
   const ref = useRef(null);
   const x = useSpring(0, { stiffness: 200, damping: 18 });
@@ -157,45 +164,112 @@ function MagneticButton({ children, className, onClick, strength = 0.35, title }
   );
 }
 
+// ─── Glow Card ────────────────────────────────────────────────────────────────
 function GlowCard({ children, className, glowColor }) {
   const [hovered, setHovered] = useState(false);
   return (
     <div className={`relative transition-all duration-300 ${className}`} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{ boxShadow: hovered ? `0 0 0 1px ${glowColor}, 0 0 30px ${glowColor}, 0 20px 60px rgba(0,0,0,0.4)` : undefined, }}>
+      style={{ boxShadow: hovered ? `0 0 0 1px ${glowColor}, 0 0 30px ${glowColor}, 0 20px 60px rgba(0,0,0,0.4)` : undefined }}>
       {hovered && <div className="pointer-events-none absolute inset-0 rounded-[inherit] z-0" style={{ background: `radial-gradient(circle at 50% 0%, ${glowColor} 0%, transparent 70%)` }} />}
       <div className="relative z-10">{children}</div>
     </div>
   );
 }
 
+// ─── Priority Select (portal-based to escape backdrop-blur stacking context) ──
+function PrioritySelect({ value, onChange, t }) {
+  const [open, setOpen] = useState(false);
+  const [coords, setCoords] = useState({ top: 0, left: 0 });
+  const btnRef = useRef(null);
+  const selected = PRIORITY_OPTIONS.find(o => o.value === value) || PRIORITY_OPTIONS[1];
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setCoords({ top: rect.bottom + 6, left: rect.left });
+    }
+    setOpen(o => !o);
+  };
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (btnRef.current && !btnRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={handleOpen}
+        className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold outline-none cursor-none transition-all duration-200 border ${t.input}`}
+      >
+        <span className={`w-2.5 h-2.5 rounded-full ${selected.dot} shrink-0`} />
+        <span className="whitespace-nowrap">{selected.label}</span>
+        <ChevronDown className={`w-3 h-3 opacity-50 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && createPortal(
+        <div
+          className="fixed z-[999999]"
+          style={{ top: coords.top, left: coords.left }}
+        >
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -6, scale: 0.97 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className={`min-w-[160px] rounded-xl border overflow-hidden shadow-2xl ${t.card}`}
+            style={{ backdropFilter: "blur(16px)" }}
+          >
+            {PRIORITY_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => { onChange(opt.value); setOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs font-semibold transition-all duration-150 cursor-none ${opt.value === value ? "bg-white/10" : "hover:bg-white/5"}`}
+              >
+                <span className={`w-2.5 h-2.5 rounded-full ${opt.dot} shrink-0`} />
+                <span>{opt.label}</span>
+                {opt.value === value && <span className="ml-auto text-[10px] opacity-60">✓</span>}
+              </button>
+            ))}
+          </motion.div>
+        </div>,
+        document.body
+      )}
+    </>
+  );
+}
+
+// ─── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [tasks, setTasks] = useState(() => {
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || initialTasks; }
     catch { return initialTasks; }
   });
-
   const [settings, setSettings] = useState(() => {
     try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || defaultSettings; }
     catch { return defaultSettings; }
   });
-  
-  const [input, setInput] = useState("");
-  const [priority, setPriority] = useState("medium");
-  const [tagInput, setTagInput] = useState("");
-  const [dueTime, setDueTime] = useState("");
-  
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState("all");
-  const [activeTag, setActiveTag] = useState("all");
-  const [theme, setTheme] = useState("dark");
+
+  const [input, setInput]               = useState("");
+  const [priority, setPriority]         = useState("medium");
+  const [tagInput, setTagInput]         = useState("");
+  const [dueTime, setDueTime]           = useState("");
+  const [query, setQuery]               = useState("");
+  const [filter, setFilter]             = useState("all");
+  const [activeTag, setActiveTag]       = useState("all");
+  const [theme, setTheme]               = useState("dark");
   const [selectedDate, setSelectedDate] = useState(todayString);
   const [calendarOffset, setCalendarOffset] = useState(0);
-  
-  const [audioOn, setAudioOn] = useState(false);
-  const [trackIndex, setTrackIndex] = useState(0);
+  const [audioOn, setAudioOn]           = useState(false);
+  const [trackIndex, setTrackIndex]     = useState(0);
   const [isChangingTheme, setIsChangingTheme] = useState(false);
-  const [isInitialMount, setIsInitialMount] = useState(true);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen]   = useState(false);
 
   const t = themes[theme];
 
@@ -210,19 +284,12 @@ export default function App() {
   const audioRef      = useRef(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => { setIsInitialMount(false); }, 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
   }, [tasks]);
 
   useEffect(() => {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    if (audioRef.current) {
-        audioRef.current.volume = settings.volume;
-    }
+    if (audioRef.current) audioRef.current.volume = settings.volume;
   }, [settings]);
 
   useLayoutEffect(() => {
@@ -255,29 +322,18 @@ export default function App() {
 
   useEffect(() => {
     if (!audioRef.current) return;
-    
     audioRef.current.load();
-
-    if (audioOn) { 
-      audioRef.current.volume = settings.volume; 
-      audioRef.current.play().catch(() => {}); 
-    } else {
-      audioRef.current.pause();
-    }
+    if (audioOn) { audioRef.current.volume = settings.volume; audioRef.current.play().catch(() => {}); }
+    else audioRef.current.pause();
   }, [audioOn, trackIndex, settings.volume]);
 
   const changeTheme = (next) => {
     if (next === theme) return;
     setIsChangingTheme(true);
-    setTimeout(() => {
-      setTheme(next);
-      setIsChangingTheme(false);
-    }, 180);
+    setTimeout(() => { setTheme(next); setIsChangingTheme(false); }, 180);
   };
 
-  const updateSetting = (key, value) => {
-      setSettings(prev => ({ ...prev, [key]: value }));
-  };
+  const updateSetting = (key, value) => setSettings(prev => ({ ...prev, [key]: value }));
 
   const filteredTasks = useMemo(() => tasks.filter(task => {
     const matchDate   = task.date === selectedDate;
@@ -291,47 +347,31 @@ export default function App() {
     let streakCount = 0;
     let checkDate = new Date();
     const todayIso = getLocalIsoDate(checkDate);
-    
-    const todayHasCompleted = tasks.some(t => t.date === todayIso && t.completed);
-
-    if (settings.forgivingStreak && !todayHasCompleted) {
-        checkDate.setDate(checkDate.getDate() - 1);
-    }
-
+    const todayHasCompleted = tasks.some(tk => tk.date === todayIso && tk.completed);
+    if (settings.forgivingStreak && !todayHasCompleted) checkDate.setDate(checkDate.getDate() - 1);
     while (true) {
       const iso = getLocalIsoDate(checkDate);
-      const hasCompletedTasks = tasks.some(t => t.date === iso && t.completed);
-      if (hasCompletedTasks) {
-        streakCount++;
-        checkDate.setDate(checkDate.getDate() - 1);
-      } else {
-        break;
-      }
+      if (tasks.some(tk => tk.date === iso && tk.completed)) { streakCount++; checkDate.setDate(checkDate.getDate() - 1); }
+      else break;
     }
     return streakCount;
   }, [tasks, settings.forgivingStreak]);
 
   const uniqueTags = useMemo(() => {
     const tags = new Set();
-    tasks.filter(t => t.date === selectedDate).forEach(t => t.tags?.forEach(tg => tags.add(tg)));
+    tasks.filter(tk => tk.date === selectedDate).forEach(tk => tk.tags?.forEach(tg => tags.add(tg)));
     return Array.from(tags);
   }, [tasks, selectedDate]);
 
-  const completedToday = filteredTasks.filter(tk => tk.completed).length;
-  const progress = filteredTasks.length ? Math.round((completedToday / filteredTasks.length) * 100) : 0;
+  const completedToday     = filteredTasks.filter(tk => tk.completed).length;
+  const progress           = filteredTasks.length ? Math.round((completedToday / filteredTasks.length) * 100) : 0;
   const goalProgressPercent = Math.min(100, (completedToday / settings.dailyGoal) * 100);
 
   const addTask = () => {
     const text = input.trim();
     if (!text) return;
-    
-    const parsedTags = tagInput ? tagInput.split(',').map(t => t.trim()).filter(Boolean) : [];
-
-    setTasks(prev => [{ 
-      id: uid(), text, completed: false, date: selectedDate, 
-      priority, tags: parsedTags, dueTime 
-    }, ...prev]);
-    
+    const parsedTags = tagInput ? tagInput.split(',').map(tg => tg.trim()).filter(Boolean) : [];
+    setTasks(prev => [{ id: uid(), text, completed: false, date: selectedDate, priority, tags: parsedTags, dueTime }, ...prev]);
     setInput(""); setTagInput(""); setDueTime(""); setPriority("medium");
   };
 
@@ -339,23 +379,19 @@ export default function App() {
   const deleteTask     = (id) => setTasks(prev => prev.filter(tk => tk.id !== id));
   const clearCompleted = ()   => setTasks(prev => prev.filter(tk => !tk.completed));
 
-  const calendarDays = useMemo(() => {
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(); 
-      d.setDate(d.getDate() - 3 + i + calendarOffset); 
-      return d;
-    });
-  }, [calendarOffset]);
+  const calendarDays = useMemo(() => Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - 3 + i + calendarOffset); return d;
+  }), [calendarOffset]);
 
-  const emptyStateMessage = useMemo(() => {
-    return EMPTY_MESSAGES[new Date(selectedDate).getDate() % EMPTY_MESSAGES.length];
-  }, [selectedDate]);
+  const emptyStateMessage = useMemo(() =>
+    EMPTY_MESSAGES[new Date(selectedDate).getDate() % EMPTY_MESSAGES.length],
+  [selectedDate]);
 
   return (
+    <>
     <motion.div
-      initial={{ opacity: 0, filter: "blur(12px)" }}
-      animate={{ opacity: 1, filter: isChangingTheme ? "blur(4px)" : "none" }}
-      transition={{ duration: isInitialMount ? 1.1 : (isChangingTheme ? 0.18 : 0.32), ease: "easeOut" }}
+      animate={{ filter: isChangingTheme ? "blur(4px)" : "none" }}
+      transition={{ duration: isChangingTheme ? 0.18 : 0.32, ease: "easeOut" }}
       className={`app-root min-h-screen overflow-hidden cursor-none flex items-center justify-center transition-colors duration-700 ${t.background}`}
       style={{ backgroundColor: t.bg }}
     >
@@ -374,11 +410,7 @@ export default function App() {
         input[type=range]::-webkit-slider-thumb { height: 18px; width: 18px; border-radius: 50%; background: #ffffff; cursor: pointer; -webkit-appearance: none; margin-top: -6px; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
       `}</style>
 
-      <audio 
-        ref={audioRef} 
-        src={AUDIO_TRACKS[trackIndex].url} 
-        loop 
-      />
+      <audio ref={audioRef} src={AUDIO_TRACKS[trackIndex].url} loop />
 
       <div ref={bgRef} className="pointer-events-none fixed inset-0 z-0 transition-all duration-75" />
 
@@ -386,30 +418,15 @@ export default function App() {
         {PARTICLES.map((p, i) => <Particle key={i} data={p} color={t.particleColor} />)}
       </div>
 
-      <div ref={cursorGlowRef}
-        className="pointer-events-none fixed left-0 top-0 z-[99999] h-[16rem] w-[16rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40"
-        style={{
-          background: `radial-gradient(circle, ${t.glowColor} 0%, ${t.glowColor2} 38%, transparent 72%)`,
-          mixBlendMode: "screen", filter: "blur(58px)", willChange: "transform",
-        }} />
 
-      <div ref={cursorRingRef}
-        className="pointer-events-none fixed left-0 top-0 z-[99999] h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full"
-        style={{
-          border: `1px solid ${t.ringColor}`,
-          boxShadow: t.ringBoxShadow,
-          mixBlendMode: "screen", filter: "blur(1px)", willChange: "transform",
-        }} />
-
-      <div ref={cursorDotRef}
-        className="pointer-events-none fixed left-0 top-0 z-[99999] h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
-        style={{ mixBlendMode: "screen", boxShadow: t.dotShadow, willChange: "transform" }} />
 
       <div className="flex w-full max-w-[1240px] items-stretch gap-8 px-4 py-8">
-        
+
+        {/* ── LEFT COLUMN ── */}
         <div className="flex-1 flex flex-col gap-5">
           <GlowCard glowColor={t.cardHoverGlow} className={`glass-card flex-1 rounded-[1.4rem] border p-5 ${t.card}`}>
-            
+
+            {/* Header */}
             <div className="mb-6 flex items-start justify-between">
               <div>
                 <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-xs">
@@ -436,18 +453,14 @@ export default function App() {
                       <div className={`flex items-center justify-center rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest ${t.button} hover:bg-transparent cursor-default whitespace-nowrap`}>
                         {AUDIO_TRACKS[trackIndex].name}
                       </div>
-                      <MagneticButton 
-                        onClick={() => setTrackIndex(i => (i + 1) % AUDIO_TRACKS.length)} 
-                        className={`rounded-full p-2 transition-all duration-300 ${t.button}`}
-                        title="Next Track"
-                      >
+                      <MagneticButton onClick={() => setTrackIndex(i => (i + 1) % AUDIO_TRACKS.length)} className={`rounded-full p-2 transition-all duration-300 ${t.button}`} title="Next Track">
                         <SkipForward className="h-4 w-4" />
                       </MagneticButton>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                <div className="w-[1px] h-6 bg-current opacity-20 mx-1"></div>
+                <div className="w-[1px] h-6 bg-current opacity-20 mx-1" />
 
                 {["dark","pink","beige"].map(th => (
                   <MagneticButton key={th} onClick={() => changeTheme(th)}
@@ -456,15 +469,15 @@ export default function App() {
                   </MagneticButton>
                 ))}
 
-                <div className="w-[1px] h-6 bg-current opacity-20 mx-1"></div>
-                
+                <div className="w-[1px] h-6 bg-current opacity-20 mx-1" />
+
                 <MagneticButton onClick={() => setIsSettingsOpen(true)} className={`rounded-full p-2 transition-all duration-300 ${t.button}`}>
                   <Settings className="h-4 w-4" />
                 </MagneticButton>
-
               </div>
             </div>
 
+            {/* Calendar */}
             <div className={`rounded-[1.4rem] border p-4 ${t.card}`}>
               <div className="mb-5 flex items-center justify-between z-50">
                 <div>
@@ -495,32 +508,31 @@ export default function App() {
               </div>
             </div>
 
+            {/* Stats */}
             <div className="mt-5 grid grid-cols-3 gap-4 items-stretch">
-              
               <GlowCard glowColor={t.cardHoverGlow} className={`glass-card rounded-[1.2rem] border p-4 flex flex-col justify-center ${t.card}`}>
                 <div className={`text-[10px] uppercase font-bold tracking-widest flex items-center gap-2 mb-3 ${t.subtle}`}><Target className="w-3.5 h-3.5"/> Daily Target</div>
                 <div className="text-4xl font-black">{completedToday} <span className="text-xl font-medium opacity-40">/ {settings.dailyGoal}</span></div>
                 <div className="w-full bg-black/30 h-1.5 rounded-full mt-4 overflow-hidden relative">
-                   <motion.div initial={{ width: 0 }} animate={{ width: `${goalProgressPercent}%` }} className={`absolute left-0 top-0 h-full bg-gradient-to-r ${t.progress}`} />
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${goalProgressPercent}%` }} className={`absolute left-0 top-0 h-full bg-gradient-to-r ${t.progress}`} />
                 </div>
               </GlowCard>
 
               <GlowCard glowColor={t.cardHoverGlow} className={`glass-card rounded-[1.2rem] border p-4 flex flex-col justify-center ${t.card}`}>
-                 <div className={`text-[10px] uppercase font-bold tracking-widest flex items-center gap-2 mb-3 ${t.subtle}`}><Flame className="w-3.5 h-3.5 text-orange-400"/> Current Streak</div>
-                 <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
-                    {currentStreak} <span className="text-xl font-medium text-white/40">Days</span>
-                 </div>
+                <div className={`text-[10px] uppercase font-bold tracking-widest flex items-center gap-2 mb-3 ${t.subtle}`}><Flame className="w-3.5 h-3.5 text-orange-400"/> Current Streak</div>
+                <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">
+                  {currentStreak} <span className="text-xl font-medium text-white/40">Days</span>
+                </div>
               </GlowCard>
 
               <div className={`glass-card rounded-[1.2rem] border p-2 flex items-center justify-center ${t.card}`}>
                 <ProgressRing progress={progress} theme={theme} />
               </div>
-
             </div>
           </GlowCard>
 
+          {/* Input card */}
           <GlowCard glowColor={t.cardHoverGlow} className={`glass-card rounded-[1.4rem] border p-5 ${t.card} z-50`}>
-            
             <div className="flex gap-3">
               <div className="relative flex-1">
                 <Plus className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 opacity-60" />
@@ -529,24 +541,15 @@ export default function App() {
                   placeholder="Add a new task"
                   className={`w-full rounded-xl border py-3 pl-11 pr-4 text-sm outline-none transition-all duration-300 ${t.input} cursor-none`} />
               </div>
-              <MagneticButton onClick={addTask}
-                className={`rounded-xl bg-gradient-to-r px-6 py-3 text-sm font-bold transition-all duration-300 ${t.accent} ${t.accentText}`}>
+              <MagneticButton onClick={addTask} className={`rounded-xl bg-gradient-to-r px-6 py-3 text-sm font-bold transition-all duration-300 ${t.accent} ${t.accentText}`}>
                 Add task
               </MagneticButton>
             </div>
 
             <div className="flex gap-2 mt-3 overflow-x-auto pb-1 no-scrollbar items-center">
-              <select 
-                value={priority} 
-                onChange={e => setPriority(e.target.value)} 
-                style={{ backgroundColor: t.solidBg, color: t.solidText, borderColor: t.solidBorder, borderWidth: "1px" }}
-                className="rounded-lg px-3 py-2 text-xs font-semibold outline-none appearance-none cursor-none"
-              >
-                <option value="low">⬜ Low Priority</option>
-                <option value="medium">🟦 Medium Priority</option>
-                <option value="high">🟧 High Priority</option>
-                <option value="critical">🟥 Critical</option>
-              </select>
+              {/* ── Custom priority dropdown replacing native <select> ── */}
+              <PrioritySelect value={priority} onChange={setPriority} t={t} />
+
               <div className="relative">
                 <Tag className="absolute left-3 top-1/2 h-3 w-3 -translate-y-1/2 opacity-50" />
                 <input type="text" value={tagInput} onChange={e => setTagInput(e.target.value)} placeholder="Tags (e.g. Work, Gym)" className={`rounded-lg py-2 pl-8 pr-3 text-xs font-semibold outline-none w-36 cursor-none ${t.input}`} />
@@ -557,7 +560,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="w-full h-px bg-white/10 my-4"></div>
+            <div className="w-full h-px bg-white/10 my-4" />
 
             <div className="flex flex-wrap gap-3">
               <div className="relative flex-1">
@@ -566,7 +569,8 @@ export default function App() {
               </div>
               <div className="flex gap-2">
                 {["all","active","done"].map(type => (
-                  <MagneticButton key={type} onClick={() => setFilter(type)} className={`rounded-xl px-4 py-3 text-sm transition-all duration-300 ${filter === type ? `bg-gradient-to-r ${t.accent} ${t.accentText}` : t.button}`}>
+                  <MagneticButton key={type} onClick={() => setFilter(type)}
+                    className={`rounded-xl px-4 py-3 text-sm transition-all duration-300 ${filter === type ? `bg-gradient-to-r ${t.accent} ${t.accentText}` : t.button}`}>
                     {type.charAt(0).toUpperCase() + type.slice(1)}
                   </MagneticButton>
                 ))}
@@ -576,16 +580,14 @@ export default function App() {
           </GlowCard>
         </div>
 
+        {/* ── RIGHT COLUMN — Missions ── */}
         <GlowCard glowColor={t.cardHoverGlow} className={`glass-card w-[440px] self-stretch rounded-[1.4rem] border p-6 flex flex-col ${t.card} z-40`}>
           <div className="mb-5">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-3xl font-black">Missions</h2>
                 <p className={`mt-1 text-sm ${t.subtle}`}>
-                  {(() => {
-                    const [y, m, d] = selectedDate.split("-");
-                    return new Date(y, m - 1, d).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
-                  })()}
+                  {(() => { const [y, m, d] = selectedDate.split("-"); return new Date(y, m - 1, d).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }); })()}
                 </p>
               </div>
               <div className={`rounded-full border px-4 py-2 text-sm font-bold ${t.button}`}>
@@ -595,9 +597,9 @@ export default function App() {
 
             {uniqueTags.length > 0 && (
               <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                <button onClick={() => setActiveTag('all')} className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${activeTag === 'all' ? `bg-white text-black border-white` : t.button}`}>All</button>
+                <button onClick={() => setActiveTag('all')} className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${activeTag === 'all' ? 'bg-white text-black border-white' : t.button}`}>All</button>
                 {uniqueTags.map(tg => (
-                  <button key={tg} onClick={() => setActiveTag(tg)} className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${activeTag === tg ? `bg-white text-black border-white` : t.button}`}>{tg}</button>
+                  <button key={tg} onClick={() => setActiveTag(tg)} className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${activeTag === tg ? 'bg-white text-black border-white' : t.button}`}>{tg}</button>
                 ))}
               </div>
             )}
@@ -606,7 +608,8 @@ export default function App() {
           <div className="space-y-3 flex-1 overflow-y-auto pr-1 no-scrollbar pb-10">
             <AnimatePresence mode="popLayout">
               {filteredTasks.length === 0 ? (
-                <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className={`rounded-[1.4rem] border border-dashed p-10 text-center ${t.card}`}>
+                <motion.div key="empty" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                  className={`rounded-[1.4rem] border border-dashed p-10 text-center ${t.card}`}>
                   <div className={`mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[1.2rem] bg-gradient-to-r ${t.accent}`}>
                     <Sparkles className="h-7 w-7 text-white" />
                   </div>
@@ -614,9 +617,14 @@ export default function App() {
                 </motion.div>
               ) : (
                 filteredTasks.map(task => (
-                  <motion.div key={task.id} layout initial={{ opacity: 0, y: 12, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, x: 24, scale: 0.95 }} transition={{ duration: 0.28 }} className={`group flex items-start gap-4 rounded-[1.1rem] border p-4 transition-all duration-300 hover:-translate-y-0.5 ${task.completed ? "border-emerald-400/20 bg-emerald-400/5" : t.card}`} style={{ boxShadow: task.completed ? "0 0 20px rgba(52,211,153,0.08)" : undefined }}>
+                  <motion.div key={task.id} layout
+                    initial={{ opacity: 0, y: 12, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, x: 24, scale: 0.95 }}
+                    transition={{ duration: 0.28 }}
+                    className={`group flex items-start gap-4 rounded-[1.1rem] border p-4 transition-all duration-300 hover:-translate-y-0.5 ${task.completed ? "border-emerald-400/20 bg-emerald-400/5" : t.card}`}
+                    style={{ boxShadow: task.completed ? "0 0 20px rgba(52,211,153,0.08)" : undefined }}>
 
-                    <MagneticButton strength={0.4} onClick={() => toggleTask(task.id)} className={`mt-0.5 flex shrink-0 h-7 w-7 items-center justify-center rounded-full border transition-all duration-300 ${task.completed ? "border-emerald-400 bg-emerald-400 text-white shadow-[0_0_15px_rgba(52,211,153,0.4)]" : t.button}`}>
+                    <MagneticButton strength={0.4} onClick={() => toggleTask(task.id)}
+                      className={`mt-0.5 flex shrink-0 h-7 w-7 items-center justify-center rounded-full border transition-all duration-300 ${task.completed ? "border-emerald-400 bg-emerald-400 text-white shadow-[0_0_15px_rgba(52,211,153,0.4)]" : t.button}`}>
                       <AnimatePresence>
                         {task.completed && (
                           <motion.span initial={{ scale: 0, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0, rotate: 90 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
@@ -630,32 +638,32 @@ export default function App() {
                       <h3 className={`text-base font-semibold leading-tight transition-all duration-300 break-words ${task.completed ? "line-through opacity-50" : ""}`}>
                         {task.text}
                       </h3>
-                      
                       <div className="flex flex-wrap gap-2 mt-2">
                         {task.priority && (
-                           <span className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[9px] font-bold uppercase tracking-wider ${
-                             task.priority === 'critical' ? 'border-red-500/40 text-red-400 bg-red-500/10' :
-                             task.priority === 'high' ? 'border-orange-500/40 text-orange-400 bg-orange-500/10' :
-                             task.priority === 'medium' ? 'border-blue-500/40 text-blue-400 bg-blue-500/10' :
-                             'border-gray-400/40 text-gray-400 bg-gray-400/10'
-                           }`}>
-                             <AlertCircle className="w-2.5 h-2.5" /> {task.priority}
-                           </span>
+                          <span className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[9px] font-bold uppercase tracking-wider ${
+                            task.priority === 'critical' ? 'border-red-500/40 text-red-400 bg-red-500/10' :
+                            task.priority === 'high'     ? 'border-orange-500/40 text-orange-400 bg-orange-500/10' :
+                            task.priority === 'medium'   ? 'border-blue-500/40 text-blue-400 bg-blue-500/10' :
+                                                           'border-gray-400/40 text-gray-400 bg-gray-400/10'
+                          }`}>
+                            <AlertCircle className="w-2.5 h-2.5" /> {task.priority}
+                          </span>
                         )}
                         {task.tags && task.tags.map(tg => (
-                           <span key={tg} className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[9px] font-bold uppercase tracking-wider ${t.button}`}>
-                             <Tag className="w-2.5 h-2.5" /> {tg}
-                           </span>
+                          <span key={tg} className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[9px] font-bold uppercase tracking-wider ${t.button}`}>
+                            <Tag className="w-2.5 h-2.5" /> {tg}
+                          </span>
                         ))}
                         {task.dueTime && (
-                           <span className={`flex items-center gap-1 px-2 py-0.5 rounded border text-[9px] font-bold uppercase tracking-wider text-emerald-400 border-emerald-400/30 bg-emerald-400/10`}>
-                             <Clock className="w-2.5 h-2.5" /> {task.dueTime}
-                           </span>
+                          <span className="flex items-center gap-1 px-2 py-0.5 rounded border text-[9px] font-bold uppercase tracking-wider text-emerald-400 border-emerald-400/30 bg-emerald-400/10">
+                            <Clock className="w-2.5 h-2.5" /> {task.dueTime}
+                          </span>
                         )}
                       </div>
                     </div>
 
-                    <MagneticButton strength={0.4} onClick={() => deleteTask(task.id)} className={`rounded-xl p-2.5 transition-all duration-300 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 ${t.button}`}>
+                    <MagneticButton strength={0.4} onClick={() => deleteTask(task.id)}
+                      className={`rounded-xl p-2.5 transition-all duration-300 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 ${t.button}`}>
                       <Trash2 className="h-4 w-4" />
                     </MagneticButton>
                   </motion.div>
@@ -666,6 +674,7 @@ export default function App() {
         </GlowCard>
       </div>
 
+      {/* ── Settings Modal ── */}
       <AnimatePresence>
         {isSettingsOpen && (
           <motion.div
@@ -679,59 +688,35 @@ export default function App() {
               <button onClick={() => setIsSettingsOpen(false)} className={`absolute top-6 right-6 p-2 rounded-full border transition-all hover:bg-white/10 ${t.button}`}>
                 <X className="w-5 h-5" />
               </button>
-              
               <h2 className="text-2xl font-black mb-8 flex items-center gap-3">
                 <Settings className="w-6 h-6 text-cyan-400" /> System Config
               </h2>
-
               <div className="space-y-6">
                 <div>
                   <label className={`text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-2 ${t.subtle}`}><User className="w-4 h-4"/> Operator Designation</label>
-                  <input 
-                    type="text" 
-                    value={settings.userName} 
-                    onChange={e => updateSetting('userName', e.target.value)}
-                    className={`w-full rounded-xl border py-3 px-4 outline-none transition-all duration-300 ${t.input} cursor-none`} 
-                  />
+                  <input type="text" value={settings.userName} onChange={e => updateSetting('userName', e.target.value)} className={`w-full rounded-xl border py-3 px-4 outline-none transition-all duration-300 ${t.input} cursor-none`} />
                 </div>
-
                 <div>
                   <label className={`text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-2 ${t.subtle}`}><Target className="w-4 h-4"/> Daily Mission Quota</label>
                   <div className="flex items-center gap-4">
-                     <button onClick={() => updateSetting('dailyGoal', Math.max(1, settings.dailyGoal - 1))} className={`w-10 h-10 rounded-full border flex items-center justify-center ${t.button}`}>-</button>
-                     <div className="text-3xl font-black w-12 text-center">{settings.dailyGoal}</div>
-                     <button onClick={() => updateSetting('dailyGoal', settings.dailyGoal + 1)} className={`w-10 h-10 rounded-full border flex items-center justify-center ${t.button}`}>+</button>
+                    <button onClick={() => updateSetting('dailyGoal', Math.max(1, settings.dailyGoal - 1))} className={`w-10 h-10 rounded-full border flex items-center justify-center ${t.button}`}>-</button>
+                    <div className="text-3xl font-black w-12 text-center">{settings.dailyGoal}</div>
+                    <button onClick={() => updateSetting('dailyGoal', settings.dailyGoal + 1)} className={`w-10 h-10 rounded-full border flex items-center justify-center ${t.button}`}>+</button>
                   </div>
                 </div>
-
                 <div>
                   <label className={`text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-2 ${t.subtle}`}><Sliders className="w-4 h-4"/> Ambient Volume</label>
-                  <input 
-                    type="range" min="0" max="1" step="0.05"
-                    value={settings.volume} 
-                    onChange={e => updateSetting('volume', parseFloat(e.target.value))}
-                    className="w-full mt-2 cursor-none"
-                  />
+                  <input type="range" min="0" max="1" step="0.05" value={settings.volume} onChange={e => updateSetting('volume', parseFloat(e.target.value))} className="w-full mt-2 cursor-none" />
                 </div>
-
                 <div className={`p-4 rounded-xl border flex items-center justify-between mt-4 ${t.input}`}>
                   <div>
                     <div className="font-bold flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-emerald-400"/> Forgiving Streaks</div>
                     <div className={`text-xs mt-1 max-w-[240px] ${t.subtle}`}>Don't break the streak if today isn't over yet</div>
                   </div>
-                  <button 
-                    onClick={() => updateSetting('forgivingStreak', !settings.forgivingStreak)}
-                    className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 ${settings.forgivingStreak ? 'bg-emerald-500' : 'bg-white/10'}`}
-                  >
-                    <motion.div 
-                      layout 
-                      className="w-6 h-6 bg-white rounded-full shadow-md"
-                      animate={{ x: settings.forgivingStreak ? 24 : 0 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    />
+                  <button onClick={() => updateSetting('forgivingStreak', !settings.forgivingStreak)} className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 ${settings.forgivingStreak ? 'bg-emerald-500' : 'bg-white/10'}`}>
+                    <motion.div layout className="w-6 h-6 bg-white rounded-full shadow-md" animate={{ x: settings.forgivingStreak ? 24 : 0 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} />
                   </button>
                 </div>
-
               </div>
             </motion.div>
           </motion.div>
@@ -739,5 +724,22 @@ export default function App() {
       </AnimatePresence>
 
     </motion.div>
+
+    {/* Cursor rendered in portal — outside motion.div filter stacking context */}
+    {createPortal(
+      <>
+        <div ref={cursorGlowRef}
+          className="pointer-events-none fixed left-0 top-0 h-[16rem] w-[16rem] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40"
+          style={{ zIndex: 2147483647, background: `radial-gradient(circle, ${t.glowColor} 0%, ${t.glowColor2} 38%, transparent 72%)`, mixBlendMode: "screen", filter: "blur(58px)", willChange: "transform" }} />
+        <div ref={cursorRingRef}
+          className="pointer-events-none fixed left-0 top-0 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ zIndex: 2147483647, border: `1px solid ${t.ringColor}`, boxShadow: t.ringBoxShadow, mixBlendMode: "screen", filter: "blur(1px)", willChange: "transform" }} />
+        <div ref={cursorDotRef}
+          className="pointer-events-none fixed left-0 top-0 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
+          style={{ zIndex: 2147483647, mixBlendMode: "screen", boxShadow: t.dotShadow, willChange: "transform" }} />
+      </>,
+      document.body
+    )}
+    </>
   );
 }
