@@ -1,8 +1,8 @@
-# ✨ Flashy Todo App
+# ✨ Astral
 
-A cinematic cyberpunk-inspired todo dashboard built with React, Vite, TailwindCSS, GSAP, and Framer Motion.
+A cinematic futuristic productivity cockpit built with React, Vite, TailwindCSS, Framer Motion, and immersive animated UI systems.
 
-Designed to feel less like a productivity app and more like a neon mission-control console 🌌
+Designed to feel less like a todo app and more like a personalized mission-control operating system 🌌
 
 ---
 
@@ -14,20 +14,43 @@ Designed to feel less like a productivity app and more like a neon mission-contr
 
 ## ⚡ Features
 
-- 🌌 Cyberpunk glassmorphism UI
-- 🖱️ Smooth cursor-following ambient glow
+- 🌌 Futuristic glassmorphism interface
+- 🖱️ Smooth cinematic cursor glow system
+- 🎨 Dynamic multi-theme engine
+- 🖼️ Custom wallpaper themes
+- ✨ Automatic wallpaper color extraction
 - 📅 Interactive orbit calendar
-- ✅ Task completion system
-- 🗑️ Animated task deletion
-- 🔍 Live task search
+- ✅ Mission/task management system
+- 🔍 Live mission search
 - 🎛️ Active / Done / All filters
+- 📌 Priority-based task organization
+- 🏷️ Custom tags & due times
+- 🎵 Ambient background soundtracks
+- 📊 Animated productivity metrics
+- 🌠 Floating particle atmosphere
 - 💾 Persistent local storage
-- 🎞️ GSAP motion animations
-- ✨ Framer Motion transitions
-- 🌠 Neon atmospheric background effects
+- ✨ Framer Motion powered transitions
 - 📱 Responsive modern layout
-- ✨ New themes
-- 🎵 Ambient sound effects
+
+---
+
+## 🎨 Themes
+
+Astral currently includes:
+
+- 🌑 Dark Neon
+- 💗 Pink Pulse
+- 🟤 Beige Gold
+- 🖼️ Fully Custom Wallpaper Mode
+
+Wallpaper mode dynamically adapts:
+- UI glow colors
+- Cursor aura
+- Progress gradients
+- Accent lighting
+- Ambient visual effects
+
+based on the uploaded image palette.
 
 ---
 
@@ -38,9 +61,9 @@ Designed to feel less like a productivity app and more like a neon mission-contr
 | React | UI Framework |
 | Vite | Build Tool |
 | TailwindCSS | Styling |
-| GSAP | Advanced Animations |
 | Framer Motion | Motion & Layout Animations |
 | Lucide React | Icons |
+| LocalStorage API | Persistent State |
 | Vercel | Deployment |
 
 ---
@@ -50,13 +73,13 @@ Designed to feel less like a productivity app and more like a neon mission-contr
 Clone the repository:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/flashy-todo.git
+git clone https://github.com/ShriyanshRaut/astral.git
 ```
 
 Move into the project:
 
 ```bash
-cd flashy-todo
+cd astral
 ```
 
 Install dependencies:
@@ -87,27 +110,48 @@ npm run preview
 
 ---
 
-## 🌌 UI Highlights
+## 🌌 UI Systems
 
-### Cursor Glow System
-- Large smooth radial spotlight
-- Trailing teal neon ring
-- Real-time cursor particle
-- `requestAnimationFrame` smoothing
-- `mix-blend-mode: screen`
+### ✨ Cursor Glow Engine
 
-### Mission Control Dashboard
-- Floating holographic task cards
-- Orbit-style date selector
-- Animated progress metrics
-- Glassmorphism panels
-- Ambient blurred gradients
+- Large ambient spotlight glow
+- Trailing neon ring
+- Real-time smoothing
+- Dynamic theme adaptation
+- Blend-mode powered lighting
 
-### Motion System
-- GSAP entrance animations
-- Smooth task transitions
-- Interactive hover states
-- Physics-inspired motion timing
+---
+
+### 🪐 Mission Control Dashboard
+
+- Orbit-style calendar
+- Holographic task cards
+- Animated productivity metrics
+- Interactive transitions
+- Glassmorphism containers
+- Dynamic glow borders
+
+---
+
+### 🖼️ Wallpaper Intelligence System
+
+Upload any wallpaper and Astral automatically:
+
+- Extracts dominant colors
+- Generates adaptive UI accents
+- Applies cinematic overlays
+- Updates cursor & glow styling
+- Creates a personalized workspace atmosphere
+
+---
+
+### 🌠 Atmospheric Effects
+
+- Floating particle system
+- Gradient motion backgrounds
+- Theme transition blur effects
+- Parallax wallpaper movement
+- Ambient depth layering
 
 ---
 
@@ -125,7 +169,7 @@ src/
 
 ## 🚀 Deployment
 
-This project is optimized for deployment on:
+Astral is optimized for deployment on:
 
 - Vercel
 - Netlify
@@ -143,14 +187,17 @@ vercel
 
 ---
 
-## 🎨 Future Improvements
+## 🧠 Future Roadmap
 
-- ☁️ Cloud sync
-- 🔔 Notifications
+- ☁️ Cloud synchronization
+- 🤖 AI productivity assistant
 - 📊 Analytics dashboard
-- 🤖 AI task assistant
-- 🧠 Smart productivity insights
-- 🧪 Make an app using React Native
+- 🧠 Smart focus insights
+- 🔔 Notifications & reminders
+- 🎙️ Voice commands
+- 📱 React Native mobile app
+- 👥 Collaborative workspaces
+- 🌍 Real-time sync
 
 ---
 
@@ -158,9 +205,9 @@ vercel
 
 ### Shriyansh Raut
 
-Built with caffeine, neon gradients, and unreasonable amounts of blur.
+Built with neon gradients, cinematic blur, and an unhealthy amount of UI obsession.
 
-GitHub:
+GitHub:  
 https://github.com/ShriyanshRaut
 
 ---
@@ -169,4 +216,4 @@ https://github.com/ShriyanshRaut
 
 MIT License
 
-Feel free to fork, modify, and build your own cyberpunk productivity universe ✨
+Feel free to fork, modify, and build your own productivity universe ✨
