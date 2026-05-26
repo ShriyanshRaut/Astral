@@ -617,7 +617,7 @@ export default function App() {
         </div>
 
         {/* ── Main layout ── */}
-        <div className="flex w-full max-w-[1180px] items-stretch gap-5 px-3 py-5 scale-[0.92] origin-top relative z-10">
+        <div className="flex w-full max-w-[1380px] items-stretch gap-6 px-5 py-5 scale-[0.95] origin-top relative z-10">
 
           {/* LEFT COLUMN */}
           <div className="flex-1 flex flex-col gap-5">
@@ -816,7 +816,8 @@ export default function App() {
 
           {/* RIGHT — Missions */}
           <GlowCard glowColor={t.cardHoverGlow} transitionGlow={cardTransitionGlow}
-            className={`glass-card w-full max-w-[400px] min-w-[340px] self-stretch rounded-[1.4rem] border p-5 flex flex-col overflow-hidden ${t.card} z-40`}>
+            className={`glass-card w-full max-w-[480px] min-w-[420px] self-stretch rounded-[1.4rem] border p-5 flex flex-col overflow-hidden ${t.card} z-40`}
+            >
             <div className="mb-5">
               <div className="flex items-center justify-between mb-4">
                 <div>
