@@ -122,7 +122,7 @@ function buildCustomTheme(imageUrl, palette) {
     dotShadow: `0 0 20px rgba(255,255,255,0.95),0 0 40px ${rgba(p,0.7)},0 0 70px ${rgba(s,0.4)}`,
     ringBoxShadow: `0 0 45px ${rgba(p,0.55)},inset 0 0 12px ${rgba(s,0.2)}`,
     background: "text-white",
-    card: "border-white/15 bg-white/[0.05] text-white shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur-2xl",
+    card: "border-white/15 bg-white/[0.03] text-white shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur-2xl",
     subtle: "text-white/65",
     input: "bg-white/[0.08] border-white/15 placeholder:text-white/40 backdrop-blur-xl",
     button: "border border-white/15 bg-white/[0.08] text-white hover:bg-white/[0.18] backdrop-blur-xl",
