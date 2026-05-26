@@ -18,11 +18,6 @@ function getLocalIsoDate(d = new Date()) {
 }
 const todayString = getLocalIsoDate();
 
-const initialTasks = [
-  { id: uid(), text: "Ship the UI polish pass",     completed: false, date: todayString, priority: "high",     tags: ["Development"], dueTime: "14:00" },
-  { id: uid(), text: "Add smooth enter animations", completed: true,  date: todayString, priority: "medium",   tags: ["Design"],      dueTime: "16:30" },
-  { id: uid(), text: "Review today's priorities",   completed: false, date: todayString, priority: "critical", tags: ["Planning"],    dueTime: "09:00" },
-];
 
 const defaultSettings = { dailyGoal: 5, userName: "Operator", forgivingStreak: true, volume: 0.25 };
 
