@@ -18,6 +18,7 @@ function getLocalIsoDate(d = new Date()) {
 }
 const todayString = getLocalIsoDate();
 
+const initialTasks = [];
 
 const defaultSettings = { dailyGoal: 5, userName: "Operator", forgivingStreak: true, volume: 0.25 };
 
