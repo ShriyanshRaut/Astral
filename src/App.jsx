@@ -5,11 +5,11 @@ import {
   CalendarDays, Check, ChevronLeft, ChevronRight,
   Plus, Search, Sparkles, Trash2, Volume2, VolumeX, SkipForward,
   Flame, Target, AlertCircle, Tag, Clock, Settings, X, User, Sliders, ShieldCheck,
-  ChevronDown, ImagePlus, Trash, UploadCloud
+  ChevronDown, ImagePlus, Trash, UploadCloud, Cloud, AlertTriangle
 } from "lucide-react";
 
-const STORAGE_KEY      = "flashy-todo-v4";
-const SETTINGS_KEY     = "flashy-settings-v1";
+const STORAGE_KEY = "flashy-todo-v4";
+const SETTINGS_KEY = "flashy-settings-v1";
 const CUSTOM_THEME_KEY = "flashy-custom-theme-v1";
 
 function uid() { return Math.random().toString(36).slice(2, 10); }
@@ -101,7 +101,6 @@ const themes = {
   },
 };
 
-// Build a theme from extracted palette + wallpaper URL
 function buildCustomTheme(imageUrl, palette) {
   const p = palette.primary;
   const s = palette.secondary;
@@ -133,7 +132,6 @@ function buildCustomTheme(imageUrl, palette) {
   };
 }
 
-// Canvas-based palette extractor — no npm needed
 function extractPalette(imgEl) {
   return new Promise((resolve) => {
     const canvas = document.createElement("canvas");
@@ -165,7 +163,13 @@ const PARTICLES = Array.from({ length: 38 }, () => ({
   left:`${Math.random()*100}%`, top:`${Math.random()*100}%`,
   size:`${Math.random()*3+1}px`, duration:`${Math.random()*15+10}s`,
   delay:`-${Math.random()*10}s`, opacity:Math.random()*0.6+0.15, glow:Math.random()*6+3,
+  tx1:`${Math.random()>0.5?"":"-"}${Math.floor(Math.random()*40+10)}px`,
+  ty1:`-${Math.floor(Math.random()*60+20)}px`,
+  tx2:`${Math.random()>0.5?"":"-"}${Math.floor(Math.random()*30+5)}px`,
+  ty2:`-${Math.floor(Math.random()*80+30)}px`,
+  ty3:`-${Math.floor(Math.random()*100+40)}px`,
 }));
+
 function Particle({ data, color }) {
   return (
     <div className="absolute rounded-full pointer-events-none"
@@ -180,7 +184,7 @@ function Particle({ data, color }) {
 function ProgressRing({ progress, t }) {
   const r = 52, circ = 2 * Math.PI * r;
   return (
-    <div className="relative flex items-center justify-center transition-all duration-500" style={{ width:130, height:130 , borderRadius:"9999px",boxShadow:t.ringBoxShadow,}}>
+    <div className="relative flex items-center justify-center transition-all duration-500" style={{ width:130, height:130 , borderRadius:"9999px",boxShadow:t.ringBoxShadow}}>
       <svg width="130" height="130" style={{ transform:"rotate(-90deg)" }}>
         <circle cx="65" cy="65" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="8" />
         <motion.circle cx="65" cy="65" r={r} fill="none" stroke={`url(#${"progressGradient"})`}
@@ -290,7 +294,6 @@ function PrioritySelect({ value, onChange, t }) {
   );
 }
 
-// Wallpaper upload modal
 function WallpaperModal({ isOpen, onClose, onApply, onClear, hasCustom, t }) {
   const [dragging,    setDragging]    = useState(false);
   const [preview,     setPreview]     = useState(null);
@@ -346,7 +349,6 @@ function WallpaperModal({ isOpen, onClose, onApply, onClear, hasCustom, t }) {
           Upload any image — the UI adapts its glow, cursor aura, and accents to match.
         </p>
 
-        {/* Drop zone */}
         <div
           onDragOver={e=>{ e.preventDefault(); setDragging(true); }}
           onDragLeave={()=>setDragging(false)}
@@ -373,7 +375,6 @@ function WallpaperModal({ isOpen, onClose, onApply, onClear, hasCustom, t }) {
         <input ref={fileRef} type="file" accept="image/*" className="hidden"
           onChange={e=>processFile(e.target.files[0])} />
 
-        {/* Palette swatches */}
         <AnimatePresence>
           {palPreview && !loading && (
             <motion.div initial={{ opacity:0,y:8 }} animate={{ opacity:1,y:0 }}
@@ -416,9 +417,47 @@ function WallpaperModal({ isOpen, onClose, onApply, onClear, hasCustom, t }) {
   );
 }
 
-// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+function SyncIndicator({ status }) {
+  if (!status) return null;
+  return (
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-white/70 mr-2">
+      {status === 'syncing' && (
+        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
+          <div className="w-3 h-3 border-[1.5px] border-white/30 border-t-white rounded-full" />
+        </motion.div>
+      )}
+      {status === 'synced' && <Cloud className="w-3 h-3 text-emerald-400" />}
+      {status === 'offline' && <AlertTriangle className="w-3 h-3 text-red-400" />}
+      <span>{status}</span>
+    </div>
+  );
+}
+
+function useStore() {
+  const [tasks, setTasksState] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || initialTasks; }
+    catch { return initialTasks; }
+  });
+  const [syncStatus, setSyncStatus] = useState("synced");
+
+  const setTasks = useCallback((newTasks) => {
+    setTasksState(prev => {
+      const evaluatedTasks = typeof newTasks === 'function' ? newTasks(prev) : newTasks;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(evaluatedTasks));
+      return evaluatedTasks;
+    });
+  }, []);
+
+  const pushTask = useCallback((task, action = "upsert") => {
+    setSyncStatus("syncing");
+    setTimeout(() => setSyncStatus("synced"), 1000);
+  }, []);
+
+  return { tasks, setTasks, pushTask, user: { name: "Operator" }, syncStatus };
+}
+
 export default function App() {
-  const [tasks, setTasks] = useState(()=>{ try { return JSON.parse(localStorage.getItem(STORAGE_KEY))||initialTasks; } catch { return initialTasks; } });
+  const { tasks, setTasks, pushTask, user, syncStatus } = useStore();
   const [settings, setSettings] = useState(()=>{ try { return JSON.parse(localStorage.getItem(SETTINGS_KEY))||defaultSettings; } catch { return defaultSettings; } });
   const [customTheme, setCustomTheme] = useState(()=>{ try { return JSON.parse(localStorage.getItem(CUSTOM_THEME_KEY))||null; } catch { return null; } });
 
@@ -438,11 +477,11 @@ export default function App() {
   const [isSettingsOpen, setIsSettingsOpen]   = useState(false);
   const [isWallpaperOpen, setIsWallpaperOpen] = useState(false);
   const [parallax, setParallax] = useState({ x:0, y:0 });
+  const [isInitialMount, setIsInitialMount] = useState(true);
 
   const outgoingThemeRef = useRef("dark");
   const t = customTheme || themes[theme];
 
-  useEffect(()=>{ localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); },[tasks]);
   useEffect(()=>{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); if(audioRef.current) audioRef.current.volume=settings.volume; },[settings]);
 
   const cursorGlowRef = useRef(null);
@@ -454,6 +493,11 @@ export default function App() {
   const bgRef         = useRef(null);
   const bgMousePos    = useRef({ x:0.5, y:0.5 });
   const audioRef      = useRef(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => { setIsInitialMount(false); }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   useLayoutEffect(()=>{
     const onMove=(e)=>{
@@ -502,14 +546,12 @@ export default function App() {
   const applyWallpaper=(imageUrl, palette)=>{
     outgoingThemeRef.current=theme;
     setIsChangingTheme(true);
-    // Convert blob URL → base64 for persistence
     fetch(imageUrl).then(r=>r.blob()).then(blob=>new Promise(res=>{
       const reader=new FileReader(); reader.onloadend=()=>res(reader.result); reader.readAsDataURL(blob);
     })).then(base64=>{
       const built=buildCustomTheme(base64, palette);
       setCustomTheme(built);
       try { localStorage.setItem(CUSTOM_THEME_KEY, JSON.stringify(built)); } catch(e) {
-        // Image too large for localStorage; store without persisting URL
         const slim={ ...built, wallpaperUrl: "" };
         setCustomTheme(slim);
       }
@@ -547,12 +589,32 @@ export default function App() {
   const addTask=()=>{
     const text=input.trim(); if(!text) return;
     const parsedTags=tagInput?tagInput.split(",").map(tg=>tg.trim()).filter(Boolean):[];
-    setTasks(prev=>[{ id:uid(), text, completed:false, date:selectedDate, priority, tags:parsedTags, dueTime },...prev]);
+    const task = { id:uid(), text, completed:false, date:selectedDate, priority, tags:parsedTags, dueTime };
+    setTasks(prev => {
+        const next = [task, ...prev];
+        return next;
+    });
+    pushTask(task);
     setInput(""); setTagInput(""); setDueTime(""); setPriority("medium");
   };
-  const toggleTask=(id)=>setTasks(prev=>prev.map(tk=>tk.id===id?{...tk,completed:!tk.completed}:tk));
-  const deleteTask=(id)=>setTasks(prev=>prev.filter(tk=>tk.id!==id));
-  const clearCompleted=()=>setTasks(prev=>prev.filter(tk=>!tk.completed));
+  const toggleTask = (id) => {
+    setTasks(prev => {
+        const next = prev.map(tk => tk.id === id ? { ...tk, completed: !tk.completed } : tk);
+        const updatedTask = next.find(tk => tk.id === id);
+        if (updatedTask) pushTask(updatedTask);
+        return next;
+    });
+  };
+  const deleteTask = (id) => {
+    const taskToDelete = tasks.find(tk => tk.id === id);
+    setTasks(prev => prev.filter(tk => tk.id !== id));
+    if (taskToDelete) pushTask(taskToDelete, "delete");
+  };
+  const clearCompleted = () => {
+    const completed = tasks.filter(tk => tk.completed);
+    setTasks(prev => prev.filter(tk => !tk.completed));
+    completed.forEach(tk => pushTask(tk, "delete"));
+  };
 
   const calendarDays=useMemo(()=>Array.from({length:7},(_,i)=>{ const d=new Date(); d.setDate(d.getDate()-3+i+calendarOffset); return d; }),[calendarOffset]);
   const emptyMsg=useMemo(()=>EMPTY_MESSAGES[new Date(selectedDate).getDate()%EMPTY_MESSAGES.length],[selectedDate]);
@@ -577,7 +639,6 @@ export default function App() {
 
         <audio ref={audioRef} src={AUDIO_TRACKS[trackIndex].url} loop />
 
-        {/* ── Wallpaper layer with parallax depth ── */}
         {customTheme?.wallpaperUrl && (
           <>
             <div className="pointer-events-none fixed z-0"
@@ -589,16 +650,13 @@ export default function App() {
                 transition:"transform 0.1s linear",
                 willChange:"transform",
               }} />
-            {/* Cinematic dark vignette scrim */}
             <div className="pointer-events-none fixed inset-0 z-[1]"
               style={{ background:"radial-gradient(ellipse at center,rgba(0,0,0,0.2) 0%,rgba(0,0,0,0.55) 100%)" }} />
           </>
         )}
 
-        {/* ── Standard gradient bg (non-custom) ── */}
         {!customTheme && <div ref={bgRef} className="pointer-events-none fixed inset-0 z-0" />}
 
-        {/* ── Moving blob overlay in custom mode ── */}
         {customTheme && (
           <motion.div className="pointer-events-none fixed inset-0 z-[2]"
             style={{
@@ -607,20 +665,16 @@ export default function App() {
             }} />
         )}
 
-        {/* ── Particles ── */}
         <div className="pointer-events-none fixed inset-0 z-[3] overflow-hidden">
           {PARTICLES.map((p,i)=><Particle key={i} data={p} color={t.particleColor} />)}
         </div>
 
-        {/* ── Main layout ── */}
         <div className="flex w-full max-w-[1380px] items-stretch gap-6 px-5 py-5 scale-[0.95] origin-top relative z-10">
 
-          {/* LEFT COLUMN */}
           <div className="flex-1 flex flex-col gap-5">
             <GlowCard glowColor={t.cardHoverGlow} transitionGlow={cardTransitionGlow}
               className={`glass-card flex-1 rounded-[1.4rem] border p-5 ${t.card}`}>
 
-              {/* Header row */}
               <div className="mb-6 flex items-start justify-between">
                 <div>
                   <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 text-xs">
@@ -635,7 +689,7 @@ export default function App() {
                 </div>
 
                 <div className="flex items-center gap-4 z-50">
-                  {/* Audio */}
+                  <SyncIndicator status={syncStatus} />
                   <MagneticButton onClick={()=>setAudioOn(a=>!a)} className={`rounded-full p-2 ${t.button}`}>
                     {audioOn?<Volume2 className="h-4 w-4"/>:<VolumeX className="h-4 w-4"/>}
                   </MagneticButton>
@@ -655,7 +709,6 @@ export default function App() {
 
                   <div className="w-px h-6 bg-current opacity-20 mx-1"/>
 
-                  {/* Built-in themes */}
         <div className="flex items-center gap-2 pl-2">
           {["dark","pink","beige"].map(th=>(
             <MagneticButton
@@ -671,7 +724,6 @@ export default function App() {
             </MagneticButton>
           ))}
         </div>
-                  {/* Custom wallpaper button */}
                   <MagneticButton
                     onClick={()=>setIsWallpaperOpen(true)}
                     className={`min-w-[130px] rounded-full px-6 py-2 text-sm font-semibold flex items-center justify-center gap-2 transition-all duration-300 ${
@@ -696,7 +748,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Calendar */}
               <div className={`rounded-[1.4rem] border p-4 ${t.card}`}>
                 <div className="mb-5 flex items-center justify-between">
                   <div>
@@ -728,7 +779,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Stats */}
               <div className="mt-5 grid grid-cols-3 gap-3 items-stretch">
                 <GlowCard glowColor={t.cardHoverGlow} transitionGlow={cardTransitionGlow}
                   className={`glass-card rounded-[1.2rem] border p-4 flex flex-col justify-center ${t.card}`}>
@@ -759,7 +809,6 @@ export default function App() {
               </div>
             </GlowCard>
 
-            {/* Add task */}
             <GlowCard glowColor={t.cardHoverGlow} transitionGlow={cardTransitionGlow}
               className={`glass-card rounded-[1.4rem] border p-5 ${t.card} z-50`}>
               <div className="flex gap-3">
@@ -810,7 +859,6 @@ export default function App() {
             </GlowCard>
           </div>
 
-          {/* RIGHT — Missions */}
           <GlowCard glowColor={t.cardHoverGlow} transitionGlow={cardTransitionGlow}
             className={`glass-card w-full max-w-[480px] min-w-[420px] self-stretch rounded-[1.4rem] border p-5 flex flex-col overflow-hidden ${t.card} z-40`}
             >
@@ -930,7 +978,6 @@ export default function App() {
           </GlowCard>
         </div>
 
-        {/* Settings modal */}
         <AnimatePresence>
           {isSettingsOpen && (
             <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
@@ -977,7 +1024,6 @@ export default function App() {
         </AnimatePresence>
       </div>
 
-      {/* Wallpaper modal */}
       <AnimatePresence>
         {isWallpaperOpen && (
           <WallpaperModal isOpen={isWallpaperOpen} onClose={()=>setIsWallpaperOpen(false)}
@@ -985,7 +1031,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Portal: theme transition flash + custom cursor */}
       {createPortal(
         <>
           <AnimatePresence>
